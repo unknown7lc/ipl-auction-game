@@ -310,27 +310,9 @@ let isHost = false;
 // ============================================
 // START AUCTION BUTTON - Host only
 // ============================================
-document.getElementById('btn-start-auction').addEventListener('click', async function() {
-  if (!currentRoomCode) return;
-
-  try {
-    await updateDoc(doc(db, 'rooms', currentRoomCode), {
-      status: 'auction',
-      currentPlayerIndex: 0,
-      currentBid: IPL_PLAYERS[0].basePrice,
-      currentBidder: null,
-      currentBidderEmail: 'No bids yet',
-      timerStarted: new Date()
-    });
-
-    // Show auction screen
-    document.getElementById('auction-room-code').textContent = currentRoomCode;
-    showScreen('screen-auction');
-    listenToAuction(currentRoomCode);
-
-  } catch (error) {
-    alert('Error starting auction: ' + error.message);
-  }
+document.getElementById('btn-start-auction').addEventListener('click', function() {
+  if (!isHost) return;
+  showScreen('screen-setup');
 });
 
 
@@ -357,7 +339,22 @@ function listenToAuction(roomCode) {
 
     // Update player card
     var idx = data.currentPlayerIndex || 0;
-    var player = IPL_PLAYERS[idx];
+    var settings = data.settings || {};
+
+    // Use ordered player list if available
+    var player;
+    if (settings.playerOrder && settings.playerOrder.length > 0) {
+      var playerId = settings.playerOrder[idx];
+      player = IPL_PLAYERS.find(p => p.id === playerId) || IPL_PLAYERS[idx];
+    } else {
+      player = IPL_PLAYERS[idx];
+    }
+
+    // Apply budget from settings for joining players
+    if (settings.budget && myBudget === 100) {
+      myBudget = settings.budget;
+      document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
+    }
 
     if (player) {
       document.getElementById('player-emoji').textContent = player.emoji;
@@ -902,3 +899,179 @@ document.getElementById('btn-save-username').addEventListener('click', async fun
     errorEl.textContent = 'Error saving username: ' + error.message;
   }
 });
+
+// ============================================
+// SETUP SCREEN VARIABLES
+// ============================================
+let setupBudget = 50;
+let setupTimer = 30;
+let setupOrder = 'random';
+let setupSquadSize = 16;
+
+
+// ============================================
+// SETUP BUTTON HANDLERS
+// ============================================
+function initSetupButtons() {
+
+  // Budget buttons
+  document.querySelectorAll('.budget-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.budget-btn').forEach(b => b.classList.remove('active-btn'));
+      btn.classList.add('active-btn');
+      setupBudget = parseInt(btn.dataset.value);
+      document.getElementById('budget-display').textContent = '₹' + setupBudget + ' Cr';
+    });
+  });
+
+  // Custom budget
+  document.getElementById('btn-custom-budget').addEventListener('click', function() {
+    var val = parseInt(document.getElementById('custom-budget').value);
+    if (isNaN(val) || val < 10 || val > 500) {
+      alert('⚠️ Please enter a budget between ₹10 Cr and ₹500 Cr');
+      return;
+    }
+    document.querySelectorAll('.budget-btn').forEach(b => b.classList.remove('active-btn'));
+    setupBudget = val;
+    document.getElementById('budget-display').textContent = '₹' + setupBudget + ' Cr';
+  });
+
+  // Timer buttons
+  document.querySelectorAll('.timer-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active-btn'));
+      btn.classList.add('active-btn');
+      setupTimer = parseInt(btn.dataset.value);
+      document.getElementById('timer-display').textContent = setupTimer + 's';
+    });
+  });
+
+  // Order buttons
+  document.querySelectorAll('.order-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.order-btn').forEach(b => b.classList.remove('active-btn'));
+      btn.classList.add('active-btn');
+      setupOrder = btn.dataset.value;
+      var labels = {
+        random: 'Random',
+        byTeam: 'By IPL Team',
+        byRole: 'By Role',
+        byPrice: 'By Price'
+      };
+      document.getElementById('order-display').textContent = labels[setupOrder];
+    });
+  });
+
+  // Squad size buttons
+  document.querySelectorAll('.squad-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.squad-btn').forEach(b => b.classList.remove('active-btn'));
+      btn.classList.add('active-btn');
+      setupSquadSize = parseInt(btn.dataset.value);
+      document.getElementById('squad-display').textContent = setupSquadSize + ' Players';
+    });
+  });
+}
+
+// Initialize setup buttons
+initSetupButtons();
+
+
+// ============================================
+// START AUCTION BUTTON - Opens setup screen
+// ============================================
+// Find your existing btn-start-auction listener
+// and REPLACE it with this:
+document.getElementById('btn-start-auction').removeEventListener('click', null);
+document.getElementById('btn-start-auction').addEventListener('click', function() {
+  if (!isHost) return;
+  showScreen('screen-setup');
+});
+
+
+// ============================================
+// BACK TO LOBBY BUTTON
+// ============================================
+document.getElementById('btn-back-lobby').addEventListener('click', function() {
+  showScreen('screen-room');
+});
+
+
+// ============================================
+// CONFIRM START AUCTION BUTTON
+// ============================================
+document.getElementById('btn-confirm-start').addEventListener('click', async function() {
+  if (!currentRoomCode) return;
+
+  try {
+    // Sort players based on host choice
+    var orderedPlayers = getOrderedPlayers(setupOrder);
+
+    await updateDoc(doc(db, 'rooms', currentRoomCode), {
+      status: 'auction',
+      currentPlayerIndex: 0,
+      currentBid: orderedPlayers[0].basePrice,
+      currentBidder: null,
+      currentBidderEmail: 'No bids yet',
+      timerStarted: new Date(),
+      // Save settings
+      settings: {
+        budget: setupBudget,
+        timer: setupTimer,
+        order: setupOrder,
+        squadSize: setupSquadSize,
+        playerOrder: orderedPlayers.map(p => p.id)
+      }
+    });
+
+    // Set my budget
+    myBudget = setupBudget;
+    document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
+
+    // Show auction screen
+    document.getElementById('auction-room-code').textContent = currentRoomCode;
+    showScreen('screen-auction');
+    listenToAuction(currentRoomCode);
+
+  } catch (error) {
+    alert('Error starting auction: ' + error.message);
+  }
+});
+
+
+// ============================================
+// ORDER PLAYERS BASED ON HOST CHOICE
+// ============================================
+function getOrderedPlayers(order) {
+  var players = [...IPL_PLAYERS];
+
+  if (order === 'random') {
+    // Fisher-Yates shuffle
+    for (var i = players.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = players[i];
+      players[i] = players[j];
+      players[j] = temp;
+    }
+  } else if (order === 'byTeam') {
+    players.sort(function(a, b) {
+      return a.team.localeCompare(b.team);
+    });
+  } else if (order === 'byRole') {
+    var roleOrder = {
+      'Batsman': 1,
+      'Wicketkeeper': 2,
+      'All-rounder': 3,
+      'Bowler': 4
+    };
+    players.sort(function(a, b) {
+      return (roleOrder[a.role] || 5) - (roleOrder[b.role] || 5);
+    });
+  } else if (order === 'byPrice') {
+    players.sort(function(a, b) {
+      return b.basePrice - a.basePrice;
+    });
+  }
+
+  return players;
+}
