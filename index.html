@@ -52,7 +52,84 @@
     <h2>🎯 Auction Room</h2>
     <p>Room Code: <strong id="room-code-display"></strong></p>
     <div id="player-list"></div>
-    <button id="btn-start-auction">▶️ Start Auction</button>
+    <button id="btn-start-auction">⚙️ Setup & Start Auction</button>
+  </div>
+</div>
+
+<!-- SCREEN 3.5: Room Setup (Host Only) -->
+<div id="screen-setup" class="screen">
+  <div class="setup-container">
+
+    <!-- Header -->
+    <div class="setup-header">
+      <h2>⚙️ Auction Setup</h2>
+      <p>Configure your auction settings</p>
+    </div>
+
+    <!-- Budget Setting -->
+    <div class="setup-box">
+      <h3>💰 Budget Per Team</h3>
+      <div class="setup-options">
+        <button class="setup-btn budget-btn active-btn" data-value="50">₹50 Cr</button>
+        <button class="setup-btn budget-btn" data-value="75">₹75 Cr</button>
+        <button class="setup-btn budget-btn" data-value="100">₹100 Cr</button>
+        <button class="setup-btn budget-btn" data-value="125">₹125 Cr</button>
+      </div>
+      <div class="custom-input-row">
+        <input type="number" id="custom-budget" placeholder="Custom amount in Cr" min="10" max="500"/>
+        <button id="btn-custom-budget">Set</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="budget-display">₹50 Cr</strong></p>
+    </div>
+
+    <!-- Timer Setting -->
+    <div class="setup-box">
+      <h3>⏱️ Timer Per Player</h3>
+      <div class="setup-options">
+        <button class="setup-btn timer-btn" data-value="15">15s</button>
+        <button class="setup-btn timer-btn active-btn" data-value="30">30s</button>
+        <button class="setup-btn timer-btn" data-value="45">45s</button>
+        <button class="setup-btn timer-btn" data-value="60">60s</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="timer-display">30s</strong></p>
+    </div>
+
+    <!-- Player Order Setting -->
+    <div class="setup-box">
+      <h3>🔀 Player Order</h3>
+      <div class="setup-options-column">
+        <button class="setup-btn order-btn active-btn" data-value="random">
+          🎲 Random (like real auction)
+        </button>
+        <button class="setup-btn order-btn" data-value="byTeam">
+          🏟️ By IPL Team
+        </button>
+        <button class="setup-btn order-btn" data-value="byRole">
+          🎭 By Role (Batsmen first)
+        </button>
+        <button class="setup-btn order-btn" data-value="byPrice">
+          💰 By Price (Expensive first)
+        </button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="order-display">Random</strong></p>
+    </div>
+
+    <!-- Squad Size Setting -->
+    <div class="setup-box">
+      <h3>👥 Squad Size</h3>
+      <div class="setup-options">
+        <button class="setup-btn squad-btn" data-value="11">11 Players</button>
+        <button class="setup-btn squad-btn active-btn" data-value="16">16 Players</button>
+        <button class="setup-btn squad-btn" data-value="20">20 Players</button>
+        <button class="setup-btn squad-btn" data-value="25">25 Players</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="squad-display">16 Players</strong></p>
+    </div>
+
+    <!-- Start Button -->
+    <button id="btn-confirm-start">🏏 Start Auction!</button>
+    <button id="btn-back-lobby">⬅️ Back to Lobby</button>
+
   </div>
 </div>
 
