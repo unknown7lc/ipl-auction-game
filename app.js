@@ -6,11 +6,11 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ============================================
-// GLOBAL VARIABLES - declared once at top
+// GLOBAL VARIABLES
 // ============================================
 let currentRoomCode = null;
-let currentPlayerIndex = 0;
 let timerInterval = null;
+let timerBarInterval = null;
 let myBudget = 100;
 let myPlayersCount = 0;
 let isHost = false;
@@ -21,10 +21,11 @@ let setupBudget = 50;
 let setupTimer = 30;
 let setupOrder = 'random';
 let setupSquadSize = 16;
-let startAuctionBtnInitialized = false;
+let maxPlayers = 2;
+let currentTimerDuration = 30;
 
 // ============================================
-// FIREBASE CONFIG - Replace with your own!
+// FIREBASE CONFIG
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyAABN4U5N4mxXwkiIBLRsprpv563mR_wd8",
@@ -35,7 +36,6 @@ const firebaseConfig = {
   appId: "1:525729954460:web:0fbb3ff950a0deddc20b59"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -77,33 +77,18 @@ function showScreen(screenId) {
 function initSpotlight() {
   var canvas = document.getElementById('spotlight-canvas');
   if (!canvas) return;
-
   var ctx = canvas.getContext('2d');
-
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
   resize();
   window.addEventListener('resize', resize);
-
   var lights = [
-    {
-      x: 0, y: 0,
-      swingAmount: 0.15, swingSpeed: 0.008, swingOffset: 0,
-      beamWidth: 0.18,
-      color1: 'rgba(233,69,96,0.25)', color2: 'rgba(233,69,96,0.0)'
-    },
-    {
-      x: 1, y: 0,
-      swingAmount: 0.15, swingSpeed: 0.006, swingOffset: Math.PI,
-      beamWidth: 0.18,
-      color1: 'rgba(233,69,96,0.25)', color2: 'rgba(233,69,96,0.0)'
-    }
+    { x: 0, y: 0, swingAmount: 0.15, swingSpeed: 0.008, swingOffset: 0, beamWidth: 0.18, color1: 'rgba(233,69,96,0.25)', color2: 'rgba(233,69,96,0.0)' },
+    { x: 1, y: 0, swingAmount: 0.15, swingSpeed: 0.006, swingOffset: Math.PI, beamWidth: 0.18, color1: 'rgba(233,69,96,0.25)', color2: 'rgba(233,69,96,0.0)' }
   ];
-
   var time = 0;
-
   function drawFloodlight(light) {
     var originX = light.x * canvas.width;
     var originY = light.y * canvas.height;
@@ -116,12 +101,10 @@ function initSpotlight() {
     var nx = -dy / dist;
     var ny = dx / dist;
     var halfWidth = dist * light.beamWidth;
-
     var gradient = ctx.createLinearGradient(originX, originY, centerX, centerY);
     gradient.addColorStop(0, light.color1);
     gradient.addColorStop(0.4, 'rgba(233,69,96,0.12)');
     gradient.addColorStop(1, light.color2);
-
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(originX, originY);
@@ -131,12 +114,10 @@ function initSpotlight() {
     ctx.fillStyle = gradient;
     ctx.fill();
     ctx.restore();
-
     var coreGradient = ctx.createLinearGradient(originX, originY, centerX, centerY);
     coreGradient.addColorStop(0, 'rgba(255,180,180,0.3)');
     coreGradient.addColorStop(0.3, 'rgba(233,69,96,0.08)');
     coreGradient.addColorStop(1, 'rgba(233,69,96,0)');
-
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(originX, originY);
@@ -146,12 +127,10 @@ function initSpotlight() {
     ctx.fillStyle = coreGradient;
     ctx.fill();
     ctx.restore();
-
     var sourceGlow = ctx.createRadialGradient(originX, originY, 0, originX, originY, 80);
     sourceGlow.addColorStop(0, 'rgba(255,200,200,0.4)');
     sourceGlow.addColorStop(0.3, 'rgba(233,69,96,0.15)');
     sourceGlow.addColorStop(1, 'rgba(233,69,96,0)');
-
     ctx.save();
     ctx.beginPath();
     ctx.arc(originX, originY, 80, 0, Math.PI * 2);
@@ -159,17 +138,14 @@ function initSpotlight() {
     ctx.fill();
     ctx.restore();
   }
-
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     time++;
     lights.forEach(drawFloodlight);
     requestAnimationFrame(animate);
   }
-
   animate();
 }
-
 initSpotlight();
 
 // ============================================
@@ -197,54 +173,42 @@ onAuthStateChanged(auth, function(user) {
 });
 
 // ============================================
-// LOGIN BUTTON
+// LOGIN
 // ============================================
 document.getElementById('btn-login').addEventListener('click', function() {
   var email = document.getElementById('email').value;
   var password = document.getElementById('password').value;
-
   if (email === '' || password === '') {
     document.getElementById('auth-error').textContent = 'Please fill in all fields.';
     return;
   }
-
   signInWithEmailAndPassword(auth, email, password)
-    .then(function(userCredential) {
-      console.log('Logged in:', userCredential.user.email);
-    })
     .catch(function(error) {
       document.getElementById('auth-error').textContent = error.message;
     });
 });
 
 // ============================================
-// REGISTER BUTTON
+// REGISTER
 // ============================================
 document.getElementById('btn-register').addEventListener('click', function() {
   var email = document.getElementById('email').value;
   var password = document.getElementById('password').value;
-
   if (email === '' || password === '') {
     document.getElementById('auth-error').textContent = 'Please fill in all fields.';
     return;
   }
-
   createUserWithEmailAndPassword(auth, email, password)
-    .then(function(userCredential) {
-      console.log('Registered:', userCredential.user.email);
-    })
     .catch(function(error) {
       document.getElementById('auth-error').textContent = error.message;
     });
 });
 
 // ============================================
-// LOGOUT BUTTON
+// LOGOUT
 // ============================================
 document.getElementById('btn-logout').addEventListener('click', function() {
-  signOut(auth).catch(function(error) {
-    console.error('Logout error:', error);
-  });
+  signOut(auth).catch(function(error) { console.error(error); });
 });
 
 // ============================================
@@ -253,38 +217,23 @@ document.getElementById('btn-logout').addEventListener('click', function() {
 document.getElementById('btn-save-username').addEventListener('click', async function() {
   var user = auth.currentUser;
   if (!user) return;
-
   var username = document.getElementById('username-input').value.trim();
   var errorEl = document.getElementById('username-error');
-
   if (username === '') { errorEl.textContent = 'Please enter a username.'; return; }
   if (username.length < 3) { errorEl.textContent = 'Username must be at least 3 characters.'; return; }
   if (username.length > 20) { errorEl.textContent = 'Username must be under 20 characters.'; return; }
   if (!/^[a-zA-Z0-9_]+$/.test(username)) { errorEl.textContent = 'Only letters, numbers and underscores allowed.'; return; }
-
   try {
     var usernamesRef = doc(db, 'usernames', username.toLowerCase());
     var usernameSnap = await getDoc(usernamesRef);
-
-    if (usernameSnap.exists()) {
-      errorEl.textContent = 'Username already taken! Try another.';
-      return;
-    }
-
+    if (usernameSnap.exists()) { errorEl.textContent = 'Username already taken!'; return; }
     var userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
-      username: username,
-      email: user.email,
-      uid: user.uid,
-      createdAt: new Date()
-    });
-
+    await setDoc(userRef, { username: username, email: user.email, uid: user.uid, createdAt: new Date() });
     await setDoc(usernamesRef, { uid: user.uid });
     showScreen('screen-lobby');
     loadDashboard(user);
-
   } catch (error) {
-    errorEl.textContent = 'Error saving username: ' + error.message;
+    errorEl.textContent = 'Error: ' + error.message;
   }
 });
 
@@ -314,54 +263,18 @@ function loadUserStats(user) {
 function loadActiveEvents() {
   var eventsList = document.getElementById('events-list');
   if (!eventsList) return;
-
   eventsList.innerHTML =
-    '<div class="event-card">' +
-      '<div class="event-dot event-dot-live"></div>' +
-      '<div class="event-info">' +
-        '<div class="event-name">IPL 2026</div>' +
-        '<div class="event-meta">Cricket · 74 matches · Mar - Jun 2026</div>' +
-      '</div>' +
-      '<div style="text-align:right">' +
-        '<div class="event-status event-status-live">LIVE</div>' +
-        '<div class="event-rooms">Rooms available</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="event-card">' +
-      '<div class="event-dot event-dot-soon"></div>' +
-      '<div class="event-info">' +
-        '<div class="event-name">T20 World Cup 2026</div>' +
-        '<div class="event-meta">Cricket · Jun 2026</div>' +
-      '</div>' +
-      '<div style="text-align:right">' +
-        '<div class="event-status event-status-soon">COMING SOON</div>' +
-      '</div>' +
-    '</div>';
+    '<div class="event-card"><div class="event-dot event-dot-live"></div><div class="event-info"><div class="event-name">IPL 2026</div><div class="event-meta">Cricket · 74 matches · Mar - Jun 2026</div></div><div style="text-align:right"><div class="event-status event-status-live">LIVE</div><div class="event-rooms">Rooms available</div></div></div>' +
+    '<div class="event-card"><div class="event-dot event-dot-soon"></div><div class="event-info"><div class="event-name">T20 World Cup 2026</div><div class="event-meta">Cricket · Jun 2026</div></div><div style="text-align:right"><div class="event-status event-status-soon">COMING SOON</div></div></div>';
 }
 
 function loadGlobalLeaderboard(user) {
   var lbDiv = document.getElementById('global-leaderboard-preview');
   if (!lbDiv) return;
-
   lbDiv.innerHTML =
-    '<div class="lb-row">' +
-      '<span class="lb-rank lb-rank-gold">1</span>' +
-      '<div class="lb-avatar">DK</div>' +
-      '<span class="lb-name">DraftKing_99</span>' +
-      '<span class="lb-pts">3,420 pts</span>' +
-    '</div>' +
-    '<div class="lb-row">' +
-      '<span class="lb-rank lb-rank-silver">2</span>' +
-      '<div class="lb-avatar">BM</div>' +
-      '<span class="lb-name">BidMaster_X</span>' +
-      '<span class="lb-pts">2,980 pts</span>' +
-    '</div>' +
-    '<div class="lb-row">' +
-      '<span class="lb-rank lb-rank-bronze">3</span>' +
-      '<div class="lb-avatar">AA</div>' +
-      '<span class="lb-name">AuctionAce</span>' +
-      '<span class="lb-pts">1,840 pts</span>' +
-    '</div>';
+    '<div class="lb-row"><span class="lb-rank lb-rank-gold">1</span><div class="lb-avatar">DK</div><span class="lb-name">DraftKing_99</span><span class="lb-pts">3,420 pts</span></div>' +
+    '<div class="lb-row"><span class="lb-rank lb-rank-silver">2</span><div class="lb-avatar">BM</div><span class="lb-name">BidMaster_X</span><span class="lb-pts">2,980 pts</span></div>' +
+    '<div class="lb-row"><span class="lb-rank lb-rank-bronze">3</span><div class="lb-avatar">AA</div><span class="lb-name">AuctionAce</span><span class="lb-pts">1,840 pts</span></div>';
 }
 
 // ============================================
@@ -382,24 +295,21 @@ document.getElementById('btn-type-public').addEventListener('click', function() 
 });
 
 // ============================================
-// HELPER - Generate random 6 char room code
+// GENERATE ROOM CODE
 // ============================================
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 // ============================================
-// CREATE ROOM BUTTON
+// CREATE ROOM
 // ============================================
 document.getElementById('btn-create-room').addEventListener('click', async function() {
   var user = auth.currentUser;
   if (!user) return;
-
   var roomCode = generateRoomCode();
   currentRoomCode = roomCode;
   isHost = true;
-  startAuctionBtnInitialized = false;
-
   try {
     await setDoc(doc(db, 'rooms', roomCode), {
       code: roomCode,
@@ -407,90 +317,58 @@ document.getElementById('btn-create-room').addEventListener('click', async funct
       hostId: user.uid,
       status: 'waiting',
       type: selectedRoomType,
+      maxPlayers: maxPlayers,
       createdAt: new Date(),
-      players: {
-        [user.uid]: {
-          email: user.email,
-          joinedAt: new Date()
-        }
-      }
+      players: { [user.uid]: { email: user.email, joinedAt: new Date() } }
     });
-
     document.getElementById('room-code-display').textContent = roomCode;
-
     var lockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
     var globeSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
     var indicator = document.getElementById('room-type-indicator');
-    if (indicator) {
-      indicator.innerHTML = selectedRoomType === 'private'
-        ? lockSvg + ' PRIVATE'
-        : globeSvg + ' PUBLIC';
-    }
-
-    showScreen('screen-room');
-    // Show start button immediately for host
+    if (indicator) indicator.innerHTML = selectedRoomType === 'private' ? lockSvg + ' PRIVATE' : globeSvg + ' PUBLIC';
     var startBtn = document.getElementById('btn-start-auction');
     if (startBtn) startBtn.style.display = 'flex';
     var guestMsg = document.getElementById('guest-waiting-msg');
     if (guestMsg) guestMsg.style.display = 'none';
+    showScreen('screen-room');
     listenToRoom(roomCode);
     listenToAuction(roomCode);
-
   } catch (error) {
     alert('Error creating room: ' + error.message);
   }
 });
 
 // ============================================
-// JOIN ROOM BUTTON
+// JOIN ROOM
 // ============================================
 document.getElementById('btn-join-room').addEventListener('click', async function() {
   var user = auth.currentUser;
   if (!user) return;
-
   var code = document.getElementById('join-code').value.toUpperCase().trim();
-
-  if (code === '') {
-    alert('Please enter a room code.');
-    return;
-  }
-
+  if (code === '') { alert('Please enter a room code.'); return; }
   try {
     var roomRef = doc(db, 'rooms', code);
     var roomSnap = await getDoc(roomRef);
-
-    if (!roomSnap.exists()) {
-      alert('Room not found! Check the code and try again.');
-      return;
-    }
-
-    if (roomSnap.data().status !== 'waiting') {
-      alert('This room has already started!');
-      return;
-    }
-
-    await updateDoc(roomRef, {
-      ['players.' + user.uid]: {
-        email: user.email,
-        joinedAt: new Date()
-      }
-    });
-
+    if (!roomSnap.exists()) { alert('Room not found!'); return; }
+    if (roomSnap.data().status !== 'waiting') { alert('This room has already started!'); return; }
+    var roomData = roomSnap.data();
+    var currentPlayers = Object.keys(roomData.players || {}).length;
+    var maxAllowed = roomData.maxPlayers || 10;
+    if (currentPlayers >= maxAllowed) { alert('This room is full! (' + maxAllowed + '/' + maxAllowed + ' players)'); return; }
+    await updateDoc(roomRef, { ['players.' + user.uid]: { email: user.email, joinedAt: new Date() } });
     currentRoomCode = code;
     isHost = false;
-
     document.getElementById('room-code-display').textContent = code;
     showScreen('screen-room');
     listenToRoom(code);
     listenToAuction(code);
-
   } catch (error) {
     alert('Error joining room: ' + error.message);
   }
 });
 
 // ============================================
-// COPY ROOM CODE BUTTON
+// COPY ROOM CODE
 // ============================================
 document.getElementById('btn-copy-code').addEventListener('click', function() {
   var code = document.getElementById('room-code-display').textContent;
@@ -500,10 +378,7 @@ document.getElementById('btn-copy-code').addEventListener('click', function() {
     btn.style.background = 'rgba(40,167,69,0.2)';
     btn.style.color = '#28a745';
     setTimeout(function() {
-      var svg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
-      svg += '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>';
-      svg += '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
-      svg += '</svg> COPY';
+      var svg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> COPY';
       btn.innerHTML = svg;
       btn.style.background = '';
       btn.style.color = '';
@@ -512,53 +387,57 @@ document.getElementById('btn-copy-code').addEventListener('click', function() {
 });
 
 // ============================================
-// BACK TO LOBBY FROM ROOM
+// LEAVE ROOM
 // ============================================
-document.getElementById('btn-back-to-lobby').addEventListener('click', function() {
-  showScreen('screen-lobby');
+document.getElementById('btn-leave-room').addEventListener('click', async function() {
+  var user = auth.currentUser;
+  if (!user || !currentRoomCode) { showScreen('screen-lobby'); return; }
+  if (!confirm('Are you sure you want to leave the room?')) return;
+  try {
+    var roomRef = doc(db, 'rooms', currentRoomCode);
+    var roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) { showScreen('screen-lobby'); return; }
+    var data = roomSnap.data();
+    var players = data.players || {};
+    delete players[user.uid];
+    await updateDoc(roomRef, { players: players });
+    currentRoomCode = null;
+    isHost = false;
+    showScreen('screen-lobby');
+  } catch (error) {
+    showScreen('screen-lobby');
+  }
 });
 
 // ============================================
-// LISTEN TO ROOM - Real time players list
+// LISTEN TO ROOM
 // ============================================
 function listenToRoom(roomCode) {
   var roomRef = doc(db, 'rooms', roomCode);
-
   onSnapshot(roomRef, function(snapshot) {
     if (!snapshot.exists()) return;
-
     var data = snapshot.data();
     var players = data.players || {};
     var playerList = document.getElementById('player-list');
     if (!playerList) return;
-
     playerList.innerHTML = '';
     var count = Object.keys(players).length;
-
     var countEl = document.getElementById('room-player-count');
-    if (countEl) countEl.textContent = count + ' / No limit';
-
+    var maxAllowed = data.maxPlayers || 10;
+    if (countEl) countEl.textContent = count + ' / ' + maxAllowed;
     Object.keys(players).forEach(function(uid) {
       var userRef = doc(db, 'users', uid);
       getDoc(userRef).then(function(userSnap) {
-        var displayName = userSnap.exists()
-          ? userSnap.data().username
-          : players[uid].email;
-
+        var displayName = userSnap.exists() ? userSnap.data().username : players[uid].email;
         var div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML =
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">' +
-          '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
-          '<circle cx="12" cy="7" r="4"/></svg> ' + displayName;
+        div.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ' + displayName;
         playerList.appendChild(div);
       });
     });
-
     var currentUser = auth.currentUser;
     var startBtn = document.getElementById('btn-start-auction');
     var guestMsg = document.getElementById('guest-waiting-msg');
-
     if (currentUser && data.hostId === currentUser.uid) {
       if (startBtn) startBtn.style.display = 'flex';
       if (guestMsg) guestMsg.style.display = 'none';
@@ -570,12 +449,10 @@ function listenToRoom(roomCode) {
 }
 
 // ============================================
-// SETUP AUCTION BUTTON - single listener
+// SETUP AUCTION BUTTON
 // ============================================
 document.getElementById('btn-start-auction').addEventListener('click', async function() {
-  if (!isHost) return;
-  if (!currentRoomCode) return;
-
+  if (!isHost || !currentRoomCode) return;
   try {
     var roomSnap = await getDoc(doc(db, 'rooms', currentRoomCode));
     if (roomSnap.exists() && roomSnap.data().settingsReady) {
@@ -600,27 +477,21 @@ function initSetupButtons() {
       document.getElementById('budget-display').textContent = '₹' + setupBudget + ' Cr';
     });
   });
-
   document.getElementById('btn-custom-budget').addEventListener('click', function() {
     var val = parseInt(document.getElementById('custom-budget').value);
-    if (isNaN(val) || val < 10 || val > 500) {
-      alert('Please enter a budget between 10 and 500 Cr');
-      return;
-    }
+    if (isNaN(val) || val < 10 || val > 500) { alert('Enter a budget between 10 and 500 Cr'); return; }
     document.querySelectorAll('.budget-btn').forEach(function(b) { b.classList.remove('active-btn'); });
     setupBudget = val;
     document.getElementById('budget-display').textContent = '₹' + setupBudget + ' Cr';
   });
-
   document.querySelectorAll('.timer-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.timer-btn').forEach(function(b) { b.classList.remove('active-btn'); });
       btn.classList.add('active-btn');
       setupTimer = parseInt(btn.dataset.value);
-      document.getElementById('timer-display').textContent = setupTimer + 's';
+      document.getElementById('timer-display-setup').textContent = setupTimer + 's';
     });
   });
-
   document.querySelectorAll('.order-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.order-btn').forEach(function(b) { b.classList.remove('active-btn'); });
@@ -630,7 +501,6 @@ function initSetupButtons() {
       document.getElementById('order-display').textContent = labels[setupOrder];
     });
   });
-
   document.querySelectorAll('.squad-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.squad-btn').forEach(function(b) { b.classList.remove('active-btn'); });
@@ -639,44 +509,47 @@ function initSetupButtons() {
       document.getElementById('squad-display').textContent = setupSquadSize + ' Players';
     });
   });
+  document.querySelectorAll('.max-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.max-btn').forEach(function(b) { b.classList.remove('active-btn'); });
+      btn.classList.add('active-btn');
+      maxPlayers = parseInt(btn.dataset.value);
+      var display = document.getElementById('maxplayers-display');
+      if (display) display.textContent = maxPlayers + ' Players';
+    });
+  });
 }
-
 initSetupButtons();
 
 // ============================================
 // BACK TO ROOM FROM SETUP
 // ============================================
 document.getElementById('btn-back-lobby').addEventListener('click', function() {
-  if (currentRoomCode) {
-    showScreen('screen-room');
-  } else {
-    showScreen('screen-lobby');
-  }
+  if (currentRoomCode) showScreen('screen-room');
+  else showScreen('screen-lobby');
 });
 
 // ============================================
-// SAVE SETTINGS BUTTON
+// SAVE SETTINGS
 // ============================================
 document.getElementById('btn-confirm-start').addEventListener('click', async function() {
   if (!currentRoomCode) return;
-
   try {
     var orderedPlayers = getOrderedPlayers(setupOrder);
-
     await updateDoc(doc(db, 'rooms', currentRoomCode), {
       settings: {
         budget: setupBudget,
         timer: setupTimer,
         order: setupOrder,
         squadSize: setupSquadSize,
+        maxPlayers: maxPlayers,
         playerOrder: orderedPlayers.map(function(p) { return p.id; })
       },
+      maxPlayers: maxPlayers,
       settingsReady: true
     });
-
     showScreen('screen-room');
     showSettingsSavedBadge();
-
   } catch (error) {
     alert('Error saving settings: ' + error.message);
   }
@@ -690,26 +563,20 @@ function showSettingsSavedBadge() {
   if (existing) existing.remove();
   var existingEdit = document.getElementById('btn-edit-settings');
   if (existingEdit) existingEdit.remove();
-
   var startBtn = document.getElementById('btn-start-auction');
   if (!startBtn) return;
-
   var badge = document.createElement('div');
   badge.id = 'settings-saved-badge';
   badge.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(40,167,69,0.1);border:1px solid rgba(40,167,69,0.3);border-radius:10px;color:#28a745;font-family:var(--font-display);font-size:0.78rem;letter-spacing:1px;margin-bottom:10px;justify-content:center;';
   badge.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> SETTINGS SAVED';
-
   var editBtn = document.createElement('button');
   editBtn.id = 'btn-edit-settings';
   editBtn.style.cssText = 'width:100%;padding:12px;background:transparent;border:1px solid rgba(233,69,96,0.3);border-radius:12px;color:#e94560;font-family:var(--font-display);font-size:0.9rem;letter-spacing:2px;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;';
   editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> EDIT SETTINGS';
-
   startBtn.parentNode.insertBefore(badge, startBtn);
   startBtn.parentNode.insertBefore(editBtn, startBtn);
-
   startBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> START AUCTION';
   startBtn.style.background = 'linear-gradient(135deg, #e94560, #c0392b)';
-
   editBtn.addEventListener('click', function() {
     badge.remove();
     editBtn.remove();
@@ -724,13 +591,10 @@ function showSettingsSavedBadge() {
 // ============================================
 function getOrderedPlayers(order) {
   var players = IPL_PLAYERS.slice();
-
   if (order === 'random') {
     for (var i = players.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
-      var temp = players[i];
-      players[i] = players[j];
-      players[j] = temp;
+      var temp = players[i]; players[i] = players[j]; players[j] = temp;
     }
   } else if (order === 'byTeam') {
     players.sort(function(a, b) { return a.team.localeCompare(b.team); });
@@ -740,7 +604,6 @@ function getOrderedPlayers(order) {
   } else if (order === 'byPrice') {
     players.sort(function(a, b) { return b.basePrice - a.basePrice; });
   }
-
   return players;
 }
 
@@ -754,67 +617,149 @@ async function startAuctionNow() {
     var data = roomSnap.data();
     var settings = data.settings || {};
     var orderedPlayers = settings.playerOrder
-      ? settings.playerOrder.map(function(id) {
-          return IPL_PLAYERS.find(function(p) { return p.id === id; });
-        }).filter(Boolean)
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
       : IPL_PLAYERS;
-
+    var now = new Date();
     await updateDoc(doc(db, 'rooms', currentRoomCode), {
       status: 'auction',
       currentPlayerIndex: 0,
       currentBid: orderedPlayers[0].basePrice,
       currentBidder: null,
       currentBidderEmail: 'No bids yet',
-      timerStarted: new Date()
+      timerStartedAt: now.getTime(),
+      timerDuration: settings.timer || 30
     });
-
     myBudget = settings.budget || 100;
     document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
     document.getElementById('auction-room-code').textContent = currentRoomCode;
     showScreen('screen-auction');
     listenToAuction(currentRoomCode);
-
   } catch (error) {
     alert('Error starting auction: ' + error.message);
   }
 }
 
 // ============================================
+// AUTO SOLD/UNSOLD — Timer based
+// ============================================
+async function handleTimerEnd() {
+  if (!currentRoomCode || !isHost) return;
+  try {
+    var roomRef = doc(db, 'rooms', currentRoomCode);
+    var roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) return;
+    var data = roomSnap.data();
+    if (data.status !== 'auction') return;
+    var settings = data.settings || {};
+    var idx = data.currentPlayerIndex || 0;
+    var soldPlayers = data.soldPlayers || [];
+    var orderedPlayers = settings.playerOrder
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
+      : IPL_PLAYERS;
+    var player = orderedPlayers[idx];
+    if (!player) return;
+
+    // Check if anyone bid
+    if (data.currentBidder) {
+      // SOLD to highest bidder
+      soldPlayers.push({
+        playerName: player.name,
+        playerRole: player.role,
+        playerTeam: player.team,
+        soldTo: data.currentBidderEmail,
+        soldToId: data.currentBidder,
+        soldFor: data.currentBid || player.basePrice
+      });
+      showSoldAnimation(player.name, data.currentBidderEmail, data.currentBid);
+    } else {
+      // UNSOLD
+      showUnsoldAnimation(player.name);
+    }
+
+    var nextIndex = idx + 1;
+    if (nextIndex >= orderedPlayers.length) {
+      await updateDoc(roomRef, { status: 'finished', soldPlayers: soldPlayers });
+      setTimeout(function() { showResults(currentRoomCode); }, 2000);
+      return;
+    }
+
+    var now = new Date();
+    await updateDoc(roomRef, {
+      currentPlayerIndex: nextIndex,
+      currentBid: orderedPlayers[nextIndex].basePrice,
+      currentBidder: null,
+      currentBidderEmail: 'No bids yet',
+      soldPlayers: soldPlayers,
+      timerStartedAt: now.getTime() + 2000,
+      timerDuration: settings.timer || 30
+    });
+  } catch (error) {
+    console.error('Timer end error:', error);
+  }
+}
+
+// ============================================
+// SOLD/UNSOLD ANIMATIONS
+// ============================================
+function showSoldAnimation(playerName, buyerName, amount) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
+  overlay.innerHTML =
+    '<div style="font-family:var(--font-display);font-size:5rem;font-weight:700;color:#28a745;letter-spacing:4px;margin-bottom:16px;">SOLD!</div>' +
+    '<div style="font-family:var(--font-display);font-size:2rem;color:#fff;margin-bottom:8px;">' + playerName + '</div>' +
+    '<div style="font-size:1.2rem;color:#e94560;font-family:var(--font-display);">₹' + amount + ' Cr → ' + buyerName + '</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function() { overlay.remove(); }, 2000);
+}
+
+function showUnsoldAnimation(playerName) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
+  overlay.innerHTML =
+    '<div style="font-family:var(--font-display);font-size:5rem;font-weight:700;color:#dc3545;letter-spacing:4px;margin-bottom:16px;">UNSOLD</div>' +
+    '<div style="font-family:var(--font-display);font-size:2rem;color:#fff;">' + playerName + '</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function() { overlay.remove(); }, 2000);
+}
+
+// ============================================
 // LISTEN TO AUCTION
 // ============================================
+var lastPlayerIndex = -1;
+
 function listenToAuction(roomCode) {
   var roomRef = doc(db, 'rooms', roomCode);
-
   onSnapshot(roomRef, function(snapshot) {
     if (!snapshot.exists()) return;
     var data = snapshot.data();
 
-    if (data.status === 'finished') {
-      showResults(roomCode);
-      return;
-    }
+    if (data.status === 'finished') { showResults(roomCode); return; }
+    if (data.status !== 'auction') return;
 
-    if (data.status === 'auction') {
-      document.getElementById('auction-room-code').textContent = roomCode;
-      showScreen('screen-auction');
-    } else {
-      return;
-    }
+    document.getElementById('auction-room-code').textContent = roomCode;
+    showScreen('screen-auction');
 
     var idx = data.currentPlayerIndex || 0;
     var settings = data.settings || {};
-    var player;
+    var orderedPlayers = settings.playerOrder
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
+      : IPL_PLAYERS;
 
-    if (settings.playerOrder && settings.playerOrder.length > 0) {
-      var playerId = settings.playerOrder[idx];
-      player = IPL_PLAYERS.find(function(p) { return p.id === playerId; }) || IPL_PLAYERS[idx];
-    } else {
-      player = IPL_PLAYERS[idx];
-    }
+    var player = orderedPlayers[idx];
 
-    if (settings.budget && myBudget === 100) {
-      myBudget = settings.budget;
-      document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
+    // Apply budget from settings
+    if (settings.budget) {
+      var soldPlayers = data.soldPlayers || [];
+      var user = auth.currentUser;
+      if (user) {
+        var myPlayers = soldPlayers.filter(function(p) { return p.soldToId === user.uid; });
+        var spent = myPlayers.reduce(function(total, p) { return total + p.soldFor; }, 0);
+        myBudget = settings.budget - spent;
+        myPlayersCount = myPlayers.length;
+        document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
+        document.getElementById('my-players-count').textContent = myPlayersCount;
+        updateBudgetBar(myBudget, settings.budget);
+      }
     }
 
     if (player) {
@@ -825,75 +770,158 @@ function listenToAuction(roomCode) {
       else if (player.role === 'Wicketkeeper') roleClass = 'role-wicketkeeper';
 
       document.getElementById('player-name').textContent = player.name;
-      document.getElementById('player-role').textContent = player.role;
-      document.getElementById('player-role').className = 'role-badge ' + roleClass;
+      var roleEl = document.getElementById('player-role');
+      if (roleEl) { roleEl.textContent = player.role; roleEl.className = 'role-badge ' + roleClass; }
       document.getElementById('player-team').textContent = player.team;
-      document.getElementById('base-price').innerHTML = 'BASE PRICE: <strong>₹' + player.basePrice + ' Cr</strong>';
+      var basePriceEl = document.getElementById('base-price');
+      if (basePriceEl) basePriceEl.innerHTML = '₹' + player.basePrice + ' Cr';
     }
 
+    // Update bid
     var bid = data.currentBid || 0;
     document.getElementById('current-bid-amount').textContent = '₹' + bid + ' Cr';
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
-    var soldPlayers = data.soldPlayers || [];
-    var user = auth.currentUser;
-    if (user) {
-      var myPlayers = soldPlayers.filter(function(p) { return p.soldToId === user.uid; });
-      var spent = myPlayers.reduce(function(total, p) { return total + p.soldFor; }, 0);
-      myBudget = (settings.budget || 100) - spent;
-      myPlayersCount = myPlayers.length;
-      document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
-      document.getElementById('my-players-count').textContent = myPlayersCount;
-    }
-
+    // Update sold list
     if (data.soldPlayers) updateSoldList(data.soldPlayers);
-    if (isHost) document.getElementById('host-controls').style.display = 'flex';
 
-    var timerDuration = (settings.timer) ? settings.timer : 30;
-    startTimer(timerDuration);
+    // Update players info panel
+    updatePlayersInfoPanel(data);
+
+    // Start timer — only reset if player changed
+    var timerDuration = settings.timer || 30;
+    currentTimerDuration = timerDuration;
+
+    if (idx !== lastPlayerIndex) {
+      lastPlayerIndex = idx;
+      var timerStartedAt = data.timerStartedAt || Date.now();
+      var elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+      var remaining = Math.max(0, timerDuration - elapsed);
+      startTimer(remaining, timerDuration);
+    }
   });
 }
 
 // ============================================
-// TIMER
+// UPDATE PLAYERS INFO PANEL
 // ============================================
-function startTimer(seconds) {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
+function updatePlayersInfoPanel(data) {
+  var panel = document.getElementById('players-info-panel');
+  if (!panel) return;
+  var players = data.players || {};
+  var soldPlayers = data.soldPlayers || [];
+  var settings = data.settings || {};
+  var maxBudget = settings.budget || 100;
+  var uids = Object.keys(players);
+  var results = {};
+  var loaded = 0;
+  if (uids.length === 0) { panel.innerHTML = ''; return; }
+  uids.forEach(function(uid) {
+    var userRef = doc(db, 'users', uid);
+    getDoc(userRef).then(function(userSnap) {
+      var username = userSnap.exists() ? userSnap.data().username : 'Player';
+      var myPlayers = soldPlayers.filter(function(p) { return p.soldToId === uid; });
+      var spent = myPlayers.reduce(function(t, p) { return t + p.soldFor; }, 0);
+      var remaining = maxBudget - spent;
+      var pct = Math.max(0, (remaining / maxBudget) * 100);
+      var isCurrentUser = auth.currentUser && auth.currentUser.uid === uid;
+      results[uid] = { username: username, remaining: remaining, count: myPlayers.length, pct: pct, isCurrentUser: isCurrentUser };
+      loaded++;
+      if (loaded === uids.length) {
+        panel.innerHTML = '';
+        uids.forEach(function(u) {
+          var r = results[u];
+          if (!r) return;
+          var div = document.createElement('div');
+          div.className = 'auc-player-row' + (r.isCurrentUser ? ' auc-player-row-you' : '');
+          div.innerHTML =
+            '<div class="auc-player-row-name">' + (r.isCurrentUser ? 'YOU' : r.username) + '</div>' +
+            '<div class="auc-player-row-stats">' +
+              '<span class="auc-player-row-budget">₹' + r.remaining + ' Cr</span>' +
+              '<span class="auc-player-row-count">' + r.count + ' players</span>' +
+            '</div>' +
+            '<div class="auc-player-row-bar-track">' +
+              '<div class="auc-player-row-bar-fill" style="width:' + r.pct + '%;background:' + (r.isCurrentUser ? '#e94560' : '#606080') + '"></div>' +
+            '</div>';
+          panel.appendChild(div);
+        });
+      }
+    });
+  });
+}
+
+// ============================================
+// TIMER WITH BAR
+// ============================================
+function startTimer(seconds, totalSeconds) {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (timerBarInterval) { clearInterval(timerBarInterval); timerBarInterval = null; }
 
   var timeLeft = seconds;
-  var display = document.getElementById('timer-display');
-  if (!display) return;
+  var total = totalSeconds || seconds;
+  var timerEl = document.getElementById('timer-display');
+  var timerBarFill = document.getElementById('auc-timer-bar-fill');
+  var timerBarAmount = document.getElementById('auc-timer-bar-val');
 
-  display.textContent = timeLeft;
-  display.style.color = 'var(--red-primary)';
-  display.style.transform = 'scale(1)';
+  var circumference = 163.4; // 2*PI*26
+  var ringFill = document.getElementById('timer-ring-fill');
+
+  function updateTimerUI() {
+    if (timerEl) {
+      timerEl.textContent = timeLeft;
+      if (timeLeft <= 5) { timerEl.style.color = '#ff0000'; }
+      else if (timeLeft <= 10) { timerEl.style.color = '#ff4444'; }
+      else { timerEl.style.color = 'var(--red)'; }
+    }
+    if (ringFill) {
+      var ringPct = Math.max(0, timeLeft / total);
+      var offset = circumference * (1 - ringPct);
+      ringFill.setAttribute('stroke-dasharray', circumference);
+      ringFill.setAttribute('stroke-dashoffset', offset);
+      if (ringPct <= 0.3) ringFill.style.stroke = '#dc3545';
+      else if (ringPct <= 0.6) ringFill.style.stroke = '#ffc107';
+      else ringFill.style.stroke = '#e94560';
+    }
+    if (timerBarFill) {
+      var pct = Math.max(0, (timeLeft / total) * 100);
+      timerBarFill.style.width = pct + '%';
+      if (pct <= 30) timerBarFill.style.background = '#dc3545';
+      else if (pct <= 60) timerBarFill.style.background = '#ffc107';
+      else timerBarFill.style.background = 'linear-gradient(135deg,#e94560,#c0392b)';
+    }
+    if (timerBarAmount) timerBarAmount.textContent = timeLeft + 's';
+  }
+
+  updateTimerUI();
 
   timerInterval = setInterval(function() {
     timeLeft--;
-
     if (timeLeft < 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      display.textContent = '0';
+      if (timerEl) timerEl.textContent = '0';
+      if (timerBarFill) timerBarFill.style.width = '0%';
+      // Auto sold/unsold — only host triggers
+      if (isHost) handleTimerEnd();
       return;
     }
-
-    display.textContent = timeLeft;
-
-    if (timeLeft <= 5) {
-      display.style.color = '#ff0000';
-      display.style.transform = 'scale(1.1)';
-    } else if (timeLeft <= 10) {
-      display.style.color = '#ff4444';
-      display.style.transform = 'scale(1.05)';
-    } else {
-      display.style.color = 'var(--red-primary)';
-      display.style.transform = 'scale(1)';
-    }
+    updateTimerUI();
   }, 1000);
+}
+
+// ============================================
+// UPDATE BUDGET BAR
+// ============================================
+function updateBudgetBar(remaining, total) {
+  var fill = document.getElementById('auc-budget-fill');
+  var amount = document.getElementById('auc-budget-val');
+  if (!fill || !amount) return;
+  var pct = Math.max(0, (remaining / total) * 100);
+  fill.style.width = pct + '%';
+  amount.textContent = '₹' + remaining + ' Cr';
+  if (pct < 30) fill.style.background = '#dc3545';
+  else if (pct < 60) fill.style.background = '#ffc107';
+  else fill.style.background = 'linear-gradient(135deg,#e94560,#c0392b)';
 }
 
 // ============================================
@@ -902,34 +930,18 @@ function startTimer(seconds) {
 async function placeBid(amount) {
   var user = auth.currentUser;
   if (!user || !currentRoomCode) return;
-
   var roomRef = doc(db, 'rooms', currentRoomCode);
-
   try {
     var snapshot = await getDoc(roomRef);
     if (!snapshot.exists()) return;
     var data = snapshot.data();
-
     var currentBid = data.currentBid || 0;
     var newBid = currentBid + amount;
-
-    if (newBid > myBudget) {
-      alert('Not enough budget!');
-      return;
-    }
-
+    if (newBid > myBudget) { alert('Not enough budget!'); return; }
     var userRef = doc(db, 'users', user.uid);
     var userSnap = await getDoc(userRef);
     var displayName = userSnap.exists() ? userSnap.data().username : user.email;
-
-    await updateDoc(roomRef, {
-      currentBid: newBid,
-      currentBidder: user.uid,
-      currentBidderEmail: displayName
-    });
-
-    startTimer(30);
-
+    await updateDoc(roomRef, { currentBid: newBid, currentBidder: user.uid, currentBidderEmail: displayName });
   } catch (error) {
     console.error('Bid error:', error);
   }
@@ -940,100 +952,22 @@ document.getElementById('btn-bid-10').addEventListener('click', function() { pla
 document.getElementById('btn-bid-20').addEventListener('click', function() { placeBid(20); });
 
 // ============================================
-// SOLD BUTTON
-// ============================================
-document.getElementById('btn-sold').addEventListener('click', async function() {
-  if (!currentRoomCode) return;
-
-  var roomRef = doc(db, 'rooms', currentRoomCode);
-  var snapshot = await getDoc(roomRef);
-  var data = snapshot.data();
-  var settings = data.settings || {};
-
-  var idx = data.currentPlayerIndex || 0;
-  var player = IPL_PLAYERS[idx];
-  var soldPlayers = data.soldPlayers || [];
-
-  soldPlayers.push({
-    playerName: player.name,
-    playerRole: player.role,
-    playerTeam: player.team,
-    soldTo: data.currentBidderEmail || 'No bidder',
-    soldToId: data.currentBidder || null,
-    soldFor: data.currentBid || player.basePrice
-  });
-
-  var nextIndex = idx + 1;
-
-  if (nextIndex >= IPL_PLAYERS.length) {
-    await updateDoc(roomRef, { status: 'finished', soldPlayers: soldPlayers });
-    showResults(currentRoomCode);
-    return;
-  }
-
-  await updateDoc(roomRef, {
-    currentPlayerIndex: nextIndex,
-    currentBid: IPL_PLAYERS[nextIndex].basePrice,
-    currentBidder: null,
-    currentBidderEmail: 'No bids yet',
-    soldPlayers: soldPlayers,
-    timerStarted: new Date()
-  });
-
-  startTimer(settings.timer || 30);
-});
-
-// ============================================
-// UNSOLD BUTTON
-// ============================================
-document.getElementById('btn-unsold').addEventListener('click', async function() {
-  if (!currentRoomCode) return;
-
-  var roomRef = doc(db, 'rooms', currentRoomCode);
-  var snapshot = await getDoc(roomRef);
-  var data = snapshot.data();
-  var settings = data.settings || {};
-
-  var idx = data.currentPlayerIndex || 0;
-  var nextIndex = idx + 1;
-
-  if (nextIndex >= IPL_PLAYERS.length) {
-    await updateDoc(roomRef, { status: 'finished' });
-    showResults(currentRoomCode);
-    return;
-  }
-
-  await updateDoc(roomRef, {
-    currentPlayerIndex: nextIndex,
-    currentBid: IPL_PLAYERS[nextIndex].basePrice,
-    currentBidder: null,
-    currentBidderEmail: 'No bids yet',
-    timerStarted: new Date()
-  });
-
-  startTimer(settings.timer || 30);
-});
-
-// ============================================
-// UPDATE SOLD LIST UI
+// UPDATE SOLD LIST (ticker)
 // ============================================
 function updateSoldList(soldPlayers) {
   var soldList = document.getElementById('sold-list');
   if (!soldList) return;
   soldList.innerHTML = '';
-
   soldPlayers.forEach(function(item) {
     var div = document.createElement('div');
     div.className = 'sold-item';
-    div.innerHTML =
-      '<span>' + item.playerName + '</span>' +
-      '<strong>₹' + item.soldFor + ' Cr - ' + item.soldTo + '</strong>';
+    div.innerHTML = '<span>' + item.playerName + '</span><strong>₹' + item.soldFor + ' Cr - ' + item.soldTo + '</strong>';
     soldList.appendChild(div);
   });
 }
 
 // ============================================
-// MY TEAM BUTTON
+// MY SQUAD BUTTON
 // ============================================
 document.getElementById('btn-myteam').addEventListener('click', function() {
   updateMyTeamScreen();
@@ -1047,40 +981,29 @@ document.getElementById('btn-back-auction').addEventListener('click', function()
 function updateMyTeamScreen() {
   var user = auth.currentUser;
   if (!user || !currentRoomCode) return;
-
   var roomRef = doc(db, 'rooms', currentRoomCode);
   getDoc(roomRef).then(function(snapshot) {
     if (!snapshot.exists()) return;
     var data = snapshot.data();
     var soldPlayers = data.soldPlayers || [];
-
     myTeamPlayers = soldPlayers.filter(function(p) { return p.soldToId === user.uid; });
     budgetSpent = myTeamPlayers.reduce(function(total, p) { return total + p.soldFor; }, 0);
     var budgetLeft = myBudget - budgetSpent;
-
     document.getElementById('stat-budget-left').textContent = '₹' + budgetLeft + ' Cr';
     document.getElementById('stat-budget-spent').textContent = '₹' + budgetSpent + ' Cr';
     document.getElementById('stat-players-bought').textContent = myTeamPlayers.length;
-
     var myteamList = document.getElementById('myteam-list');
     myteamList.innerHTML = '';
-
     if (myTeamPlayers.length === 0) {
       myteamList.innerHTML = '<p class="no-players">No players yet. Start bidding!</p>';
     } else {
       myTeamPlayers.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'myteam-player-item';
-        div.innerHTML =
-          '<div>' +
-            '<div class="player-name">' + p.playerName + '</div>' +
-            '<div class="player-role">' + p.playerRole + ' - ' + p.playerTeam + '</div>' +
-          '</div>' +
-          '<div class="player-price">₹' + p.soldFor + ' Cr</div>';
+        div.innerHTML = '<div><div class="player-name">' + p.playerName + '</div><div class="player-role">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">₹' + p.soldFor + ' Cr</div>';
         myteamList.appendChild(div);
       });
     }
-
     updateAllTeams(soldPlayers);
   });
 }
@@ -1088,124 +1011,82 @@ function updateMyTeamScreen() {
 function updateAllTeams(soldPlayers) {
   var allteamsList = document.getElementById('allteams-list');
   allteamsList.innerHTML = '';
-
   var teams = {};
   soldPlayers.forEach(function(p) {
     if (!teams[p.soldTo]) teams[p.soldTo] = [];
     teams[p.soldTo].push(p);
   });
-
-  if (Object.keys(teams).length === 0) {
-    allteamsList.innerHTML = '<p class="no-players">No players sold yet!</p>';
-    return;
-  }
-
+  if (Object.keys(teams).length === 0) { allteamsList.innerHTML = '<p class="no-players">No players sold yet!</p>'; return; }
   Object.keys(teams).forEach(function(name) {
     var players = teams[name];
     var totalSpent = players.reduce(function(t, p) { return t + p.soldFor; }, 0);
     var div = document.createElement('div');
     div.className = 'team-item';
-    div.innerHTML =
-      '<div class="team-email">' + name + ' - Spent: ₹' + totalSpent + ' Cr</div>' +
-      '<div class="team-players">' + players.map(function(p) { return p.playerName + ' (₹' + p.soldFor + 'Cr)'; }).join(', ') + '</div>';
+    div.innerHTML = '<div class="team-email">' + name + ' - Spent: ₹' + totalSpent + ' Cr</div><div class="team-players">' + players.map(function(p) { return p.playerName + ' (₹' + p.soldFor + 'Cr)'; }).join(', ') + '</div>';
     allteamsList.appendChild(div);
   });
 }
 
 // ============================================
-// RESULTS SCREEN
+// RESULTS
 // ============================================
 function showResults(roomCode) {
   var user = auth.currentUser;
   if (!user) return;
-
   document.getElementById('results-room-code').textContent = 'Room: ' + roomCode;
   showScreen('screen-results');
-
   var roomRef = doc(db, 'rooms', roomCode);
   getDoc(roomRef).then(function(snapshot) {
     if (!snapshot.exists()) return;
     var data = snapshot.data();
     var soldPlayers = data.soldPlayers || [];
-
     var teams = {};
     soldPlayers.forEach(function(p) {
       if (!p.soldToId) return;
-      if (!teams[p.soldToId]) {
-        teams[p.soldToId] = { email: p.soldTo, players: [], totalSpent: 0 };
-      }
+      if (!teams[p.soldToId]) teams[p.soldToId] = { email: p.soldTo, players: [], totalSpent: 0 };
       teams[p.soldToId].players.push(p);
       teams[p.soldToId].totalSpent += p.soldFor;
     });
-
     var sortedTeams = Object.values(teams).sort(function(a, b) {
       if (b.players.length !== a.players.length) return b.players.length - a.players.length;
       return a.totalSpent - b.totalSpent;
     });
-
     if (sortedTeams.length > 0) {
-      var winner = sortedTeams[0];
-      document.getElementById('winner-name').textContent = winner.email;
-      document.getElementById('winner-stats').textContent = winner.players.length + ' players - ₹' + winner.totalSpent + ' Cr spent';
+      document.getElementById('winner-name').textContent = sortedTeams[0].email;
+      document.getElementById('winner-stats').textContent = sortedTeams[0].players.length + ' players - ₹' + sortedTeams[0].totalSpent + ' Cr spent';
     }
-
     var rankingsDiv = document.getElementById('final-rankings');
     rankingsDiv.innerHTML = '';
     var medals = ['1st', '2nd', '3rd'];
-
     sortedTeams.forEach(function(team, index) {
       var div = document.createElement('div');
       div.className = 'ranking-item';
-      div.innerHTML =
-        '<div class="ranking-position">' + (medals[index] || (index + 1) + 'th') + '</div>' +
-        '<div class="ranking-info">' +
-          '<div class="ranking-email">' + team.email + '</div>' +
-          '<div class="ranking-details">' + team.players.length + ' players bought</div>' +
-        '</div>' +
-        '<div class="ranking-budget">₹' + team.totalSpent + ' Cr</div>';
+      div.innerHTML = '<div class="ranking-position">' + (medals[index] || (index + 1) + 'th') + '</div><div class="ranking-info"><div class="ranking-email">' + team.email + '</div><div class="ranking-details">' + team.players.length + ' players bought</div></div><div class="ranking-budget">₹' + team.totalSpent + ' Cr</div>';
       rankingsDiv.appendChild(div);
     });
-
     var myTeam = teams[user.uid];
     var finalMyteam = document.getElementById('final-myteam');
     finalMyteam.innerHTML = '';
-
     if (!myTeam || myTeam.players.length === 0) {
       finalMyteam.innerHTML = '<p class="no-players">You did not buy any players!</p>';
     } else {
       myTeam.players.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'final-player-item';
-        div.innerHTML =
-          '<div class="player-details">' +
-            '<div class="player-name">' + p.playerName + '</div>' +
-            '<div class="player-meta">' + p.playerRole + ' - ' + p.playerTeam + '</div>' +
-          '</div>' +
-          '<div class="player-price">₹' + p.soldFor + ' Cr</div>';
+        div.innerHTML = '<div class="player-details"><div class="player-name">' + p.playerName + '</div><div class="player-meta">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">₹' + p.soldFor + ' Cr</div>';
         finalMyteam.appendChild(div);
       });
     }
   });
 }
 
-document.getElementById('btn-view-season').addEventListener('click', function() {
-  alert('Season Leaderboard coming soon!');
-});
-
+document.getElementById('btn-view-season').addEventListener('click', function() { alert('Season Leaderboard coming soon!'); });
 document.getElementById('btn-share-result').addEventListener('click', function() {
   var shareText = 'My AuctionX Team!\n\n';
-  myTeamPlayers.forEach(function(p) {
-    shareText += p.playerName + ' - ₹' + p.soldFor + ' Cr\n';
-  });
-  shareText += '\nTotal Spent: ₹' + budgetSpent + ' Cr';
-  shareText += '\n\nPlay at: https://YOUR-USERNAME.github.io/ipl-auction-game';
-  navigator.clipboard.writeText(shareText).then(function() {
-    alert('Team copied to clipboard!');
-  });
+  myTeamPlayers.forEach(function(p) { shareText += p.playerName + ' - ₹' + p.soldFor + ' Cr\n'; });
+  shareText += '\nTotal Spent: ₹' + budgetSpent + ' Cr\nPlay at: https://YOUR-USERNAME.github.io/ipl-auction-game';
+  navigator.clipboard.writeText(shareText).then(function() { alert('Team copied to clipboard!'); });
 });
-
 document.getElementById('btn-new-auction').addEventListener('click', function() {
-  if (confirm('Start a new auction? This will reset the current room.')) {
-    showScreen('screen-lobby');
-  }
+  if (confirm('Start a new auction?')) showScreen('screen-lobby');
 });
