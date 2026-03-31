@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AuctionX — OUTBID. OUTSMART. OUTPLAY.</title>
+  <title>AuctionX — Outbid. Outsmart. Outplay.</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
 <canvas id="spotlight-canvas"></canvas>
 
-  <!-- SCREEN 1: Login -->
+<!-- SCREEN 1: Login -->
 <div id="screen-login" class="screen active">
   <div class="login-card">
     <div class="login-logo">
@@ -62,12 +63,12 @@
   </div>
 </div>
 
-  <!-- SCREEN 1.5: Username Setup -->
+<!-- SCREEN 1.5: Username -->
 <div id="screen-username" class="screen">
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-icon">
-        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
+        <svg viewBox="0 0 60 60" fill="none" width="52" height="52">
           <path d="M8 46 L18 14 L22 14 L32 46 L27 46 L24.5 38 L15.5 38 L13 46 Z" fill="white" opacity="0.95"/>
           <path d="M17 33 L20 22 L23 33 Z" fill="#e94560"/>
           <path d="M33 14 L42 30 L51 14 L56 14 L45 31 L56 46 L51 46 L42 32 L33 46 L28 46 L39 31 L28 14 Z" fill="white" opacity="0.95"/>
@@ -77,10 +78,6 @@
       <h1>AUCTIONX</h1>
       <p>YOUR IDENTITY IN THE ARENA</p>
     </div>
-
-    <!-- Username rules badges -->
-    <p class="username-hint">3-20 characters · Letters, numbers and underscores only</p>
-
     <div class="input-group">
       <input type="text" id="username-input" placeholder="Choose your username" maxlength="20"/>
       <span class="input-icon">
@@ -90,7 +87,7 @@
         </svg>
       </span>
     </div>
-
+    <p class="username-hint">3-20 characters · Letters, numbers and underscores only</p>
     <button id="btn-save-username" class="btn-primary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"/>
@@ -101,10 +98,8 @@
   </div>
 </div>
 
-  <!-- SCREEN 2: Home Dashboard -->
+<!-- SCREEN 2: Home Dashboard -->
 <div id="screen-lobby" class="screen">
-
-  <!-- Navbar -->
   <nav class="ax-navbar">
     <div class="ax-navbar-left">
       <div class="nav-logo">AX</div>
@@ -143,11 +138,7 @@
       </button>
     </div>
   </nav>
-
-  <!-- Main content -->
   <div class="dashboard-content">
-
-    <!-- Hero section -->
     <div class="dashboard-hero">
       <div class="hero-text">
         <h1>Welcome back, <span id="hero-username" class="hero-name">Champion</span></h1>
@@ -168,11 +159,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Action panels -->
     <div class="action-grid">
-
-      <!-- Create room panel -->
       <div class="action-panel">
         <div class="action-panel-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -210,8 +197,6 @@
         </button>
         <p class="action-note" id="room-type-note">Private rooms are for friends only. Points are not tracked.</p>
       </div>
-
-      <!-- Join room panel -->
       <div class="action-panel">
         <div class="action-panel-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -241,10 +226,7 @@
         </button>
         <p class="action-note">Enter the 6-character code shared by your host.</p>
       </div>
-
     </div>
-
-    <!-- Active Events Section -->
     <div class="dashboard-section">
       <div class="section-header">
         <h2>
@@ -259,35 +241,25 @@
         <span class="section-badge">OFFICIAL</span>
       </div>
       <div id="events-list">
-        <div class="loading-placeholder">
-          <div class="loading-bar"></div>
-          <div class="loading-bar short"></div>
-        </div>
+        <div class="loading-placeholder"><div class="loading-bar"></div><div class="loading-bar short"></div></div>
       </div>
     </div>
-
-    <!-- Global Leaderboard Preview -->
     <div class="dashboard-section">
       <div class="section-header">
         <h2>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 21h8M12 17v4M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/>
-            <path d="M4 7H2a2 2 0 0 0 2 2h0M20 7h2a2 2 0 0 1-2 2h0"/>
+            <path d="M8 21h8M12 17v4"/>
+            <path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/>
+            <path d="M4 7H2a2 2 0 0 0 2 2M20 7h2a2 2 0 0 1-2 2"/>
           </svg>
           GLOBAL LEADERBOARD
         </h2>
         <button class="section-link">VIEW ALL</button>
       </div>
       <div id="global-leaderboard-preview">
-        <div class="loading-placeholder">
-          <div class="loading-bar"></div>
-          <div class="loading-bar"></div>
-          <div class="loading-bar short"></div>
-        </div>
+        <div class="loading-placeholder"><div class="loading-bar"></div><div class="loading-bar"></div><div class="loading-bar short"></div></div>
       </div>
     </div>
-
-    <!-- Help Section -->
     <div class="help-banner">
       <div class="help-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -302,22 +274,13 @@
       </div>
       <button class="btn-ghost" style="width:auto; padding: 10px 20px; margin: 0;">GET HELP</button>
     </div>
-
   </div>
 </div>
 
-  <!-- SCREEN 3: Auction Room Lobby -->
+<!-- SCREEN 3: Auction Room Lobby -->
 <div id="screen-room" class="screen">
   <div class="room-container">
-
-    <!-- Room Header -->
     <div class="room-header">
-      <button class="btn-back" id="btn-back-to-lobby">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        BACK
-      </button>
       <div class="room-header-center">
         <div class="nav-logo">AX</div>
         <div>
@@ -325,16 +288,24 @@
           <p>Waiting for players to join...</p>
         </div>
       </div>
-      <div class="room-type-indicator" id="room-type-indicator">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        PRIVATE
+      <div class="room-header-right">
+        <div class="room-type-indicator" id="room-type-indicator">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          PRIVATE
+        </div>
+        <button class="btn-back" id="btn-leave-room" style="color:#dc3545; border-color:rgba(220,53,69,0.3);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          LEAVE
+        </button>
       </div>
     </div>
-
-    <!-- Room Code Box -->
     <div class="room-code-box">
       <div class="room-code-label">ROOM CODE</div>
       <div class="room-code-display">
@@ -349,8 +320,6 @@
       </div>
       <p class="room-code-hint">Share this code with friends to invite them</p>
     </div>
-
-    <!-- Players List -->
     <div class="room-players-box">
       <div class="room-players-header">
         <div class="room-players-title">
@@ -362,21 +331,14 @@
           </svg>
           PLAYERS IN ROOM
         </div>
-        <span class="room-player-count" id="room-player-count">1 / No limit</span>
+        <span class="room-player-count" id="room-player-count">1 / 2</span>
       </div>
       <div id="player-list"></div>
-
-      <!-- Waiting indicator -->
       <div class="waiting-indicator">
-        <div class="waiting-dots">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="waiting-dots"><span></span><span></span><span></span></div>
         <p>Waiting for more players to join...</p>
       </div>
     </div>
-
-    <!-- Start Button (host only) -->
-    <!-- Start Button (host only) -->
     <button id="btn-start-auction" class="btn-start-room" style="display:none">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -384,8 +346,6 @@
       </svg>
       SETUP AUCTION
     </button>
-
-    <!-- Guest waiting message -->
     <div id="guest-waiting-msg" class="guest-waiting">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
@@ -393,265 +353,335 @@
       </svg>
       Waiting for the host to start the auction...
     </div>
-
   </div>
 </div>
 
-  <!-- SCREEN 3.5: Room Setup -->
-  <div id="screen-setup" class="screen">
-    <div class="setup-container">
-      <input type="hidden" id="setup-room-code-ref" value=""/>
-
-      <div class="setup-header">
-        <div class="card-logo">AX</div>
-        <h2>AUCTION SETUP</h2>
-        <p>CONFIGURE YOUR AUCTION</p>
-      </div>
-
-      <div class="setup-box">
-        <h3>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-          BUDGET PER TEAM
-        </h3>
-        <div class="setup-options">
-          <button class="setup-btn budget-btn active-btn" data-value="50">₹50 Cr</button>
-          <button class="setup-btn budget-btn" data-value="75">₹75 Cr</button>
-          <button class="setup-btn budget-btn" data-value="100">₹100 Cr</button>
-          <button class="setup-btn budget-btn" data-value="125">₹125 Cr</button>
-        </div>
-        <div class="custom-input-row">
-          <input type="number" id="custom-budget" placeholder="Custom amount in Cr" min="10" max="500"/>
-          <button id="btn-custom-budget">SET</button>
-        </div>
-        <p class="setup-selected">Selected: <strong id="budget-display">₹50 Cr</strong></p>
-      </div>
-
-      <div class="setup-box">
-        <h3>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          TIMER PER PLAYER
-        </h3>
-        <div class="setup-options">
-          <button class="setup-btn timer-btn" data-value="15">15s</button>
-          <button class="setup-btn timer-btn active-btn" data-value="30">30s</button>
-          <button class="setup-btn timer-btn" data-value="45">45s</button>
-          <button class="setup-btn timer-btn" data-value="60">60s</button>
-        </div>
-        <p class="setup-selected">Selected: <strong id="timer-display">30s</strong></p>
-      </div>
-
-      <div class="setup-box">
-        <h3>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 3 21 3 21 8"/>
-            <line x1="4" y1="20" x2="21" y2="3"/>
-            <polyline points="21 16 21 21 16 21"/>
-            <line x1="15" y1="15" x2="21" y2="21"/>
-          </svg>
-          PLAYER ORDER
-        </h3>
-        <div class="setup-options-column">
-          <button class="setup-btn order-btn active-btn" data-value="random">Random — like real auction</button>
-          <button class="setup-btn order-btn" data-value="byTeam">By IPL Team</button>
-          <button class="setup-btn order-btn" data-value="byRole">By Role — Batsmen first</button>
-          <button class="setup-btn order-btn" data-value="byPrice">By Price — Expensive first</button>
-        </div>
-        <p class="setup-selected">Selected: <strong id="order-display">Random</strong></p>
-      </div>
-
-      <div class="setup-box">
-        <h3>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          SQUAD SIZE
-        </h3>
-        <div class="setup-options">
-          <button class="setup-btn squad-btn" data-value="11">11 Players</button>
-          <button class="setup-btn squad-btn active-btn" data-value="16">16 Players</button>
-          <button class="setup-btn squad-btn" data-value="20">20 Players</button>
-          <button class="setup-btn squad-btn" data-value="25">25 Players</button>
-        </div>
-        <p class="setup-selected">Selected: <strong id="squad-display">16 Players</strong></p>
-      </div>
-
-      <button id="btn-confirm-start" class="btn-green">SAVE SETTINGS</button>
-      <button id="btn-back-lobby" class="btn-ghost">BACK TO LOBBY</button>
-
+<!-- SCREEN 3.5: Setup -->
+<div id="screen-setup" class="screen">
+  <div class="setup-container">
+    <div class="setup-header">
+      <div class="card-logo" style="margin: 0 auto 16px;">AX</div>
+      <h2>AUCTION SETUP</h2>
+      <p>CONFIGURE YOUR AUCTION</p>
     </div>
-  </div>
+    <input type="hidden" id="setup-room-code-ref" value=""/>
 
-  <!-- SCREEN 4: Auction -->
-  <div id="screen-auction" class="screen">
-
-    <div class="auction-topbar">
-      <div class="budget-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-        <span>Budget: <strong id="my-budget">₹100 Cr</strong></span>
+    <div class="setup-box">
+      <h3>
+        <span style="font-size:1rem;font-weight:700;color:var(--text-secondary);">₹</span>
+        BUDGET PER TEAM
+      </h3>
+      <div class="setup-options">
+        <button class="setup-btn budget-btn active-btn" data-value="50">₹50 Cr</button>
+        <button class="setup-btn budget-btn" data-value="75">₹75 Cr</button>
+        <button class="setup-btn budget-btn" data-value="100">₹100 Cr</button>
+        <button class="setup-btn budget-btn" data-value="125">₹125 Cr</button>
       </div>
-      <div class="budget-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="custom-input-row">
+        <input type="number" id="custom-budget" placeholder="Custom amount in Cr" min="10" max="500"/>
+        <button id="btn-custom-budget">SET</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="budget-display">₹50 Cr</strong></p>
+    </div>
+
+    <div class="setup-box">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        TIMER PER PLAYER
+      </h3>
+      <div class="setup-options">
+        <button class="setup-btn timer-btn" data-value="15">15s</button>
+        <button class="setup-btn timer-btn active-btn" data-value="30">30s</button>
+        <button class="setup-btn timer-btn" data-value="45">45s</button>
+        <button class="setup-btn timer-btn" data-value="60">60s</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="timer-display-setup">30s</strong></p>
+    </div>
+
+    <div class="setup-box">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 3 21 3 21 8"/>
+          <line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/>
+          <line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+        PLAYER ORDER
+      </h3>
+      <div class="setup-options-column">
+        <button class="setup-btn order-btn active-btn" data-value="random">Random — like real auction</button>
+        <button class="setup-btn order-btn" data-value="byTeam">By IPL Team</button>
+        <button class="setup-btn order-btn" data-value="byRole">By Role — Batsmen first</button>
+        <button class="setup-btn order-btn" data-value="byPrice">By Price — Expensive first</button>
+      </div>
+      <p class="setup-selected">Selected: <strong id="order-display">Random</strong></p>
+    </div>
+
+    <div class="setup-box">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
-        <span>Squad: <strong id="my-players-count">0</strong></span>
+        SQUAD SIZE
+      </h3>
+      <div class="setup-options">
+        <button class="setup-btn squad-btn" data-value="11">11 Players</button>
+        <button class="setup-btn squad-btn active-btn" data-value="16">16 Players</button>
+        <button class="setup-btn squad-btn" data-value="20">20 Players</button>
+        <button class="setup-btn squad-btn" data-value="25">25 Players</button>
       </div>
-      <div class="budget-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
+      <p class="setup-selected">Selected: <strong id="squad-display">16 Players</strong></p>
+    </div>
+
+    <div class="setup-box">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
-        <span>Room: <strong id="auction-room-code"></strong></span>
+        MAX PLAYERS IN ROOM
+      </h3>
+      <div class="setup-options">
+        <button class="setup-btn max-btn active-btn" data-value="2">2 Players</button>
+        <button class="setup-btn max-btn" data-value="4">4 Players</button>
+        <button class="setup-btn max-btn" data-value="6">6 Players</button>
+        <button class="setup-btn max-btn" data-value="8">8 Players</button>
+        <button class="setup-btn max-btn" data-value="10">10 Players</button>
       </div>
-      <button id="btn-myteam" class="btn-topbar">MY SQUAD</button>
+      <p class="setup-selected">Selected: <strong id="maxplayers-display">2 Players</strong></p>
     </div>
 
-    <div class="auction-card">
-      <div id="player-card">
-
-        <div class="player-info">
-          <div class="player-avatar" id="player-emoji">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <h2 id="player-name">Waiting...</h2>
-          <div class="player-badges">
-            <span class="role-badge" id="player-role">Role</span>
-            <span class="team-badge" id="player-team">Team</span>
-          </div>
-        </div>
-
-        <div class="base-price">
-          BASE PRICE: <strong id="base-price">₹0 Cr</strong>
-        </div>
-
-        <div class="current-bid">
-          <p>CURRENT BID</p>
-          <h1 id="current-bid-amount">₹0 Cr</h1>
-          <p id="current-bidder">No bids yet</p>
-        </div>
-
-        <div class="timer-box">
-          <div id="timer-display">30</div>
-          <p>SEC</p>
-        </div>
-
-        <div class="bid-controls">
-          <button id="btn-bid-5" class="bid-btn">+₹5 Cr</button>
-          <button id="btn-bid-10" class="bid-btn">+₹10 Cr</button>
-          <button id="btn-bid-20" class="bid-btn">+₹20 Cr</button>
-        </div>
-
-        <div id="host-controls" style="display:none">
-          <button id="btn-sold" class="btn-sold">SOLD</button>
-          <button id="btn-unsold" class="btn-unsold">UNSOLD</button>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="sold-list-box">
-      <h3>SOLD PLAYERS</h3>
-      <div id="sold-list"></div>
-    </div>
-
+    <button id="btn-confirm-start" class="btn-green">SAVE SETTINGS</button>
+    <button id="btn-back-lobby" class="btn-ghost">BACK TO ROOM</button>
   </div>
+</div>
 
-  <!-- SCREEN 5: My Team -->
-  <div id="screen-myteam" class="screen">
-    <div class="myteam-container">
+<!-- SCREEN 4: AUCTION — FULL REDESIGN -->
+<div id="screen-auction" class="screen">
 
-      <div class="myteam-header">
-        <h2>MY SQUAD</h2>
-        <button id="btn-back-auction" class="btn-ghost-sm">BACK</button>
+  <!-- Top Bar -->
+  <div class="auc-topbar">
+    <div class="auc-topbar-left">
+      <div class="nav-logo" style="width:36px;height:36px;font-size:0.85rem;">AX</div>
+      <div class="auc-live-badge">
+        <span class="auc-live-dot"></span>
+        LIVE AUCTION
       </div>
-
-      <div class="budget-summary">
-        <div class="budget-stat">
-          <h3 id="stat-budget-left">₹100 Cr</h3>
-          <p>BUDGET LEFT</p>
-        </div>
-        <div class="budget-stat">
-          <h3 id="stat-budget-spent">₹0 Cr</h3>
-          <p>SPENT</p>
-        </div>
-        <div class="budget-stat">
-          <h3 id="stat-players-bought">0</h3>
-          <p>PLAYERS</p>
-        </div>
+      <div class="auc-room-id">
+        Room: <strong id="auction-room-code"></strong>
       </div>
-
-      <div class="myteam-list-box">
-        <h3>MY PLAYERS</h3>
-        <div id="myteam-list">
-          <p class="no-players">No players yet. Start bidding!</p>
+    </div>
+    <div class="auc-topbar-center">
+      <!-- Timer lives here -->
+      <div class="auc-timer-wrap">
+        <svg class="auc-timer-ring" viewBox="0 0 60 60">
+          <circle class="auc-timer-ring-bg" cx="30" cy="30" r="26"/>
+          <circle class="auc-timer-ring-fill" id="timer-ring-fill" cx="30" cy="30" r="26"/>
+        </svg>
+        <div class="auc-timer-inner">
+          <div class="auc-timer-num" id="timer-display">30</div>
+          <div class="auc-timer-sec">SEC</div>
         </div>
       </div>
-
-      <div class="myteam-list-box">
-        <h3>ALL SQUADS</h3>
-        <div id="allteams-list"></div>
+    </div>
+    <div class="auc-topbar-right">
+      <div class="auc-stat-chip">
+        <span class="auc-stat-label">BUDGET</span>
+        <span class="auc-stat-val" id="my-budget">₹100 Cr</span>
       </div>
-
+      <div class="auc-stat-chip">
+        <span class="auc-stat-label">SQUAD</span>
+        <span class="auc-stat-val" id="my-players-count">0</span>
+      </div>
+      <button id="btn-myteam" class="auc-squad-btn">MY SQUAD</button>
     </div>
   </div>
 
-  <!-- SCREEN 6: Results -->
-  <div id="screen-results" class="screen">
-    <div class="results-container">
+  <!-- Main body: 3 columns on desktop, stacked on mobile -->
+  <div class="auc-body">
 
-      <div class="results-header">
-        <div class="card-logo">AX</div>
-        <h1>AUCTION COMPLETE</h1>
-        <p id="results-room-code">Room: </p>
+    <!-- COL 1: Player Card -->
+    <div class="auc-col auc-col-player">
+      <div class="auc-player-glow"></div>
+      <div class="auc-player-avatar">
+        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
       </div>
+      <div class="auc-player-name" id="player-name">Waiting...</div>
+      <div class="auc-player-badges">
+        <span class="role-badge" id="player-role">Role</span>
+        <span class="team-badge" id="player-team">Team</span>
+      </div>
+      <div class="auc-base-price">
+        BASE PRICE <strong id="base-price">₹0 Cr</strong>
+      </div>
+      <!-- Stats placeholder — will be filled later -->
+      <div class="auc-player-stats-placeholder">
+        <div class="auc-stat-box">
+          <div class="auc-stat-box-val">—</div>
+          <div class="auc-stat-box-label">MATCHES</div>
+        </div>
+        <div class="auc-stat-box">
+          <div class="auc-stat-box-val">—</div>
+          <div class="auc-stat-box-label">RUNS</div>
+        </div>
+        <div class="auc-stat-box">
+          <div class="auc-stat-box-val">—</div>
+          <div class="auc-stat-box-label">WICKETS</div>
+        </div>
+      </div>
+    </div>
 
-      <div class="winner-banner">
-        <div class="winner-trophy">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M8 21h8M12 17v4"/>
-            <path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/>
-            <path d="M4 7H2a2 2 0 0 0 2 2M20 7h2a2 2 0 0 1-2 2"/>
+    <!-- COL 2: Bidding -->
+    <div class="auc-col auc-col-bid">
+
+      <!-- Current bid hero -->
+      <div class="auc-bid-hero">
+        <div class="auc-bid-hero-label">CURRENT BID</div>
+        <div class="auc-bid-hero-amount" id="current-bid-amount">₹0 Cr</div>
+        <div class="auc-bid-hero-bidder">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
           </svg>
+          <span id="current-bidder">No bids yet</span>
         </div>
-        <h2>BEST SQUAD</h2>
-        <h1 id="winner-name">Loading...</h1>
-        <p id="winner-stats">0 players</p>
       </div>
 
-      <div class="results-box">
-        <h3>FINAL RANKINGS</h3>
-        <div id="final-rankings"></div>
+      <!-- Timer bar -->
+      <div class="auc-timer-bar-section">
+        <div class="auc-timer-bar-row">
+          <span class="auc-timer-bar-label">TIME REMAINING</span>
+          <span class="auc-timer-bar-val" id="auc-timer-bar-val">30s</span>
+        </div>
+        <div class="auc-timer-bar-track">
+          <div class="auc-timer-bar-fill" id="auc-timer-bar-fill"></div>
+        </div>
       </div>
 
-      <div class="results-box">
-        <h3>MY FINAL SQUAD</h3>
-        <div id="final-myteam"></div>
+      <!-- Bid buttons -->
+      <div class="auc-bid-grid">
+        <button id="btn-bid-5" class="auc-bid-btn">
+          <span class="auc-bid-plus">+</span>
+          <span class="auc-bid-amount">₹5 Cr</span>
+        </button>
+        <button id="btn-bid-10" class="auc-bid-btn">
+          <span class="auc-bid-plus">+</span>
+          <span class="auc-bid-amount">₹10 Cr</span>
+        </button>
+        <button id="btn-bid-20" class="auc-bid-btn">
+          <span class="auc-bid-plus">+</span>
+          <span class="auc-bid-amount">₹20 Cr</span>
+        </button>
       </div>
 
-      <div class="results-actions">
-        <button id="btn-view-season" class="btn-secondary">VIEW SEASON LEADERBOARD</button>
-        <button id="btn-share-result" class="btn-green">SHARE MY SQUAD</button>
-        <button id="btn-new-auction" class="btn-ghost">NEW AUCTION</button>
+      <!-- Budget bar -->
+      <div class="auc-budget-section">
+        <div class="auc-budget-row">
+          <span class="auc-budget-label">YOUR BUDGET REMAINING</span>
+          <span class="auc-budget-val" id="auc-budget-val">₹100 Cr</span>
+        </div>
+        <div class="auc-budget-track">
+          <div class="auc-budget-fill" id="auc-budget-fill"></div>
+        </div>
       </div>
 
     </div>
+
+    <!-- COL 3: Players Panel -->
+    <div class="auc-col auc-col-players">
+      <div class="auc-panel-title">ROOM PLAYERS</div>
+      <div id="players-info-panel" class="auc-players-list"></div>
+    </div>
+
   </div>
 
-  <script type="module" src="app.js"></script>
+  <!-- Bottom ticker -->
+  <div class="auc-ticker">
+    <div class="auc-ticker-label">SOLD</div>
+    <div class="auc-ticker-scroll" id="sold-list"></div>
+  </div>
+
+</div>
+
+<!-- SCREEN 5: My Squad -->
+<div id="screen-myteam" class="screen">
+  <div class="myteam-container">
+    <div class="myteam-header">
+      <h2>MY SQUAD</h2>
+      <button id="btn-back-auction" class="btn-ghost-sm">BACK</button>
+    </div>
+    <div class="budget-summary">
+      <div class="budget-stat">
+        <h3 id="stat-budget-left">₹100 Cr</h3>
+        <p>BUDGET LEFT</p>
+      </div>
+      <div class="budget-stat">
+        <h3 id="stat-budget-spent">₹0 Cr</h3>
+        <p>SPENT</p>
+      </div>
+      <div class="budget-stat">
+        <h3 id="stat-players-bought">0</h3>
+        <p>PLAYERS</p>
+      </div>
+    </div>
+    <div class="myteam-list-box">
+      <h3>MY PLAYERS</h3>
+      <div id="myteam-list"><p class="no-players">No players yet. Start bidding!</p></div>
+    </div>
+    <div class="myteam-list-box">
+      <h3>ALL SQUADS</h3>
+      <div id="allteams-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 6: Results -->
+<div id="screen-results" class="screen">
+  <div class="results-container">
+    <div class="results-header">
+      <div class="card-logo" style="margin: 0 auto 16px; width:48px; height:48px;">AX</div>
+      <h1>AUCTION COMPLETE</h1>
+      <p id="results-room-code">Room: </p>
+    </div>
+    <div class="winner-banner">
+      <div class="winner-trophy">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 21h8M12 17v4"/>
+          <path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/>
+          <path d="M4 7H2a2 2 0 0 0 2 2M20 7h2a2 2 0 0 1-2 2"/>
+        </svg>
+      </div>
+      <h2>BEST SQUAD</h2>
+      <h1 id="winner-name">Loading...</h1>
+      <p id="winner-stats">0 players</p>
+    </div>
+    <div class="results-box">
+      <h3>FINAL RANKINGS</h3>
+      <div id="final-rankings"></div>
+    </div>
+    <div class="results-box">
+      <h3>MY FINAL SQUAD</h3>
+      <div id="final-myteam"></div>
+    </div>
+    <div class="results-actions">
+      <button id="btn-view-season" class="btn-secondary">VIEW SEASON LEADERBOARD</button>
+      <button id="btn-share-result" class="btn-green">SHARE MY SQUAD</button>
+      <button id="btn-new-auction" class="btn-ghost">NEW AUCTION</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
 </body>
 </html>
