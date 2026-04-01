@@ -1147,6 +1147,3 @@ document.getElementById('btn-share-result').addEventListener('click', function()
 document.getElementById('btn-new-auction').addEventListener('click', function() {
   if (confirm('Start a new auction?')) showScreen('screen-lobby');
 });
-
-
-// hello
