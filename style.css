@@ -259,8 +259,8 @@ p.error {
   justify-content: center;
   gap: 8px;
   position: relative;
-  overflow: hidden;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .btn-primary::before {
@@ -296,6 +296,7 @@ p.error {
   justify-content: center;
   gap: 8px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .btn-secondary:hover {
@@ -375,6 +376,7 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
+  box-sizing: border-box;
 }
 
 input {
@@ -1377,20 +1379,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
   border-right:1px solid var(--border2);
 }
 
-.auc-ticker-scroll {
-  display:flex; gap:24px; overflow:hidden;
-  flex:1; align-items:center;
-}
 
-.sold-item {
-  display:flex; align-items:center; gap:8px;
-  white-space:nowrap; font-size:0.78rem;
-  background:transparent; border:none;
-  padding:0; margin:0; animation:none;
-}
-
-.sold-item span { color:var(--text2); }
-.sold-item strong { color:var(--red); font-family:var(--font-d); }
 
 /* ==============================
    MOBILE AUCTION
@@ -1600,3 +1589,226 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 }
 
 .btn-unsold:hover { background:#dc3545!important; color:white!important; box-shadow:0 8px 20px rgba(220,53,69,0.4)!important; transform:translateY(-2px)!important; }
+
+/* Login screen button height fix */
+.login-card .btn-primary {
+  padding: 22px 20px;
+}
+
+.login-card .btn-secondary {
+  padding: 22px 20px;
+}
+
+/* Reduce opacity of spotlight in auction screen*/
+body.auction-active #spotlight-canvas {
+  opacity: 0.2;
+}
+
+/* ==============================
+   AUCTION SCREEN READABILITY FIXES
+============================== */
+
+.auc-live-badge { font-size: 0.82rem; letter-spacing: 2px; }
+
+.auc-room-id { font-size: 0.82rem; }
+.auc-room-id strong { font-size: 0.82rem; }
+
+.auc-stat-label { font-size: 0.7rem; letter-spacing: 1px; color: var(--text2); }
+.auc-stat-val { font-size: 1.05rem; }
+
+.auc-timer-bar-label { font-size: 0.78rem; color: var(--text2); }
+.auc-timer-bar-val { font-size: 0.88rem; }
+
+.auc-budget-label { font-size: 0.78rem; color: var(--text2); }
+.auc-budget-val { font-size: 0.88rem; }
+
+.auc-panel-title { font-size: 0.78rem; color: var(--text2); letter-spacing: 2px; }
+
+.auc-ticker-label { font-size: 0.75rem; letter-spacing: 2px; }
+.sold-item { font-size: 0.85rem; }
+.sold-item span { color: var(--text); }
+
+/* ==============================
+   AUCTION SCREEN TEXT SIZE FIXES
+============================== */
+
+/* 1. Top left - Live Auction & Room code */
+.auc-live-badge { font-size: 0.95rem; letter-spacing: 2px; }
+.auc-room-id { font-size: 0.88rem; }
+.auc-room-id strong { font-size: 0.88rem; letter-spacing: 1px; }
+
+/* 2. Middle section - Current Bid, Time Remaining, Budget */
+.auc-bid-hero-label { font-size: 0.85rem; letter-spacing: 2px; color: var(--text2); }
+.auc-bid-hero-bidder { font-size: 1rem; }
+.auc-timer-bar-label { font-size: 0.85rem; color: var(--text2); }
+.auc-timer-bar-val { font-size: 1rem; }
+.auc-budget-label { font-size: 0.85rem; color: var(--text2); }
+.auc-budget-val { font-size: 1rem; }
+
+/* Bid buttons */
+.auc-bid-plus { font-size: 1.3rem; }
+.auc-bid-amount { font-size: 1.15rem; }
+
+/* 3. Bottom ticker - SOLD label and sold items */
+.auc-ticker-label { font-size: 0.88rem; letter-spacing: 2px; font-weight: 700; }
+.sold-item { font-size: 0.92rem; }
+.sold-item span { color: var(--text); font-weight: 500; }
+.sold-item strong { font-size: 0.92rem; }
+
+/* 4. Room players panel */
+.auc-panel-title { font-size: 0.85rem; color: var(--text2); letter-spacing: 2px; }
+.auc-player-row-name { font-size: 1rem; }
+.auc-player-row-budget { font-size: 0.88rem; }
+.auc-player-row-count { font-size: 0.78rem; color: var(--text2); }
+
+/* Player card section */
+.auc-base-price { font-size: 0.88rem; }
+.auc-base-price strong { font-size: 1rem; }
+.auc-stat-box-val { font-size: 1.3rem; }
+.auc-stat-box-label { font-size: 0.72rem; }
+
+/* ==============================
+   AUCTION SCREEN FONT WEIGHT FIX
+============================== */
+#screen-auction {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#screen-auction .auc-bid-hero-label,
+#screen-auction .auc-timer-bar-label,
+#screen-auction .auc-budget-label,
+#screen-auction .auc-panel-title,
+#screen-auction .auc-room-id,
+#screen-auction .auc-bid-hero-bidder,
+#screen-auction .auc-player-row-budget,
+#screen-auction .auc-player-row-count,
+#screen-auction .auc-stat-box-label,
+#screen-auction .sold-item span {
+  font-weight: 600;
+}
+
+#screen-auction .auc-live-badge,
+#screen-auction .auc-timer-bar-val,
+#screen-auction .auc-budget-val,
+#screen-auction .auc-player-row-name,
+#screen-auction .auc-bid-amount,
+#screen-auction .auc-ticker-label,
+#screen-auction .sold-item strong {
+  font-weight: 700;
+}
+
+/* Player counter in topbar */
+.auc-player-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(233,69,96,0.08);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 24px;
+}
+
+.auc-player-counter-label {
+  font-family: var(--font-d);
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 3px;
+  margin-bottom: 2px;
+}
+
+.auc-player-counter-val {
+  font-family: var(--font-d);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 1px;
+}
+
+/* Fix sold ticker alignment */
+.auc-ticker-scroll {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.sold-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sold-item span {
+  white-space: nowrap;
+}
+
+.sold-item strong {
+  white-space: nowrap;
+}
+
+/* Ticker alignment and text weight fix */
+.auc-ticker {
+  align-items: center;
+}
+
+.auc-ticker-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.sold-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sold-item span {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.sold-item strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+}
+
+.auc-ticker-label {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.auc-ticker-scroll { display: flex; align-items: center; }
+
+.sold-item {
+  font-family: var(--font-d);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: block;
+  line-height: 52px;
+}
+
+.sold-price {
+  color: var(--red) !important;
+  font-weight: 600;
+}
+
+.sold-sep {
+  color: var(--text3);
+  flex-shrink: 0;
+  line-height: 52px;
+  padding: 0 8px;
+}
