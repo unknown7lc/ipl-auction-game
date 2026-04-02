@@ -63,6 +63,66 @@
   </div>
 </div>
 
+<!-- SCREEN: Verify Email -->
+<div id="screen-verify" class="screen">
+  <div class="login-card" style="max-width:420px; padding-bottom:28px;">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
+          <path d="M8 46 L18 14 L22 14 L32 46 L27 46 L24.5 38 L15.5 38 L13 46 Z" fill="white" opacity="0.95"/>
+          <path d="M17 33 L20 22 L23 33 Z" fill="#e94560"/>
+          <path d="M33 14 L42 30 L51 14 L56 14 L45 31 L56 46 L51 46 L42 32 L33 46 L28 46 L39 31 L28 14 Z" fill="white" opacity="0.95"/>
+          <rect x="8" y="50" width="44" height="3" rx="1.5" fill="white" opacity="0.3"/>
+        </svg>
+      </div>
+      <h1>AUCTIONX</h1>
+      <p>CHECK YOUR INBOX</p>
+    </div>
+
+    <div class="verify-icon-box">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </div>
+
+    <div class="verify-email-chip">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+      <span id="verify-email-display">your@email.com</span>
+    </div>
+
+    <p class="verify-desc">
+      We've sent a verification link to your email address. Click the link to verify your account, then come back here.
+    </p>
+
+    <div id="verify-status" class="verify-status" style="display:none;"></div>
+
+    <button id="btn-check-verified" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      I'VE VERIFIED MY EMAIL
+    </button>
+
+    <button id="btn-resend-verification" class="btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+      </svg>
+      RESEND EMAIL
+    </button>
+
+    <div class="verify-divider"></div>
+
+    <button id="btn-verify-logout" class="verify-switch-btn">
+      ← USE A DIFFERENT ACCOUNT
+    </button>
+  </div>
+</div>
+
 <!-- SCREEN 1.5: Username -->
 <div id="screen-username" class="screen">
   <div class="login-card">
@@ -464,7 +524,7 @@
   </div>
 </div>
 
-<!-- SCREEN 4: AUCTION — FULL REDESIGN -->
+<!-- SCREEN 4: AUCTION -->
 <div id="screen-auction" class="screen">
 
   <!-- Top Bar -->
@@ -498,7 +558,7 @@
     </div>
   </div>
 
-  <!-- Main body: 3 columns on desktop, stacked on mobile -->
+  <!-- Main body -->
   <div class="auc-body">
 
     <!-- COL 1: Player Card -->
@@ -518,7 +578,6 @@
       <div class="auc-base-price">
         BASE PRICE <strong id="base-price">₹0 Cr</strong>
       </div>
-      <!-- Stats placeholder — will be filled later -->
       <div class="auc-player-stats-placeholder">
         <div class="auc-stat-box">
           <div class="auc-stat-box-val">—</div>
@@ -537,8 +596,6 @@
 
     <!-- COL 2: Bidding -->
     <div class="auc-col auc-col-bid">
-
-      <!-- Current bid hero -->
       <div class="auc-bid-hero">
         <div class="auc-bid-hero-label">CURRENT BID</div>
         <div class="auc-bid-hero-amount" id="current-bid-amount">₹0 Cr</div>
@@ -550,8 +607,6 @@
           <span id="current-bidder">No bids yet</span>
         </div>
       </div>
-
-      <!-- Timer bar -->
       <div class="auc-timer-bar-section">
         <div class="auc-timer-bar-row">
           <span class="auc-timer-bar-label">TIME REMAINING</span>
@@ -561,8 +616,6 @@
           <div class="auc-timer-bar-fill" id="auc-timer-bar-fill"></div>
         </div>
       </div>
-
-      <!-- Bid buttons -->
       <div class="auc-bid-grid">
         <button id="btn-bid-5" class="auc-bid-btn">
           <span class="auc-bid-plus">+</span>
@@ -577,8 +630,6 @@
           <span class="auc-bid-amount">₹20 Cr</span>
         </button>
       </div>
-
-      <!-- Budget bar -->
       <div class="auc-budget-section">
         <div class="auc-budget-row">
           <span class="auc-budget-label">YOUR BUDGET REMAINING</span>
@@ -588,7 +639,6 @@
           <div class="auc-budget-fill" id="auc-budget-fill"></div>
         </div>
       </div>
-
     </div>
 
     <!-- COL 3: Players Panel -->

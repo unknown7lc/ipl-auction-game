@@ -2,7 +2,7 @@
 // FIREBASE SETUP
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ============================================
@@ -334,7 +334,6 @@ function showScreen(screenId) {
   });
   document.getElementById(screenId).classList.add('active');
   
-  // Dim spotlight on auction screen
   if (screenId === 'screen-auction') {
     document.body.classList.add('auction-active');
   } else {
@@ -424,6 +423,13 @@ initSpotlight();
 // ============================================
 onAuthStateChanged(auth, function(user) {
   if (user) {
+    // If email is not verified, show the verify screen
+    if (!user.emailVerified) {
+      var chipEl = document.getElementById('verify-email-display');
+      if (chipEl) chipEl.textContent = user.email;
+        showScreen('screen-verify');
+      return;
+    }
     var userRef = doc(db, 'users', user.uid);
     getDoc(userRef).then(function(snapshot) {
       if (snapshot.exists() && snapshot.data().username) {
@@ -470,6 +476,10 @@ document.getElementById('btn-register').addEventListener('click', function() {
     return;
   }
   createUserWithEmailAndPassword(auth, email, password)
+    .then(function(userCredential) {
+      // Send verification email immediately after registration
+      return sendEmailVerification(userCredential.user);
+    })
     .catch(function(error) {
       document.getElementById('auth-error').textContent = error.message;
     });
@@ -481,6 +491,99 @@ document.getElementById('btn-register').addEventListener('click', function() {
 document.getElementById('btn-logout').addEventListener('click', function() {
   signOut(auth).catch(function(error) { console.error(error); });
 });
+
+// ============================================
+// VERIFY EMAIL SCREEN — Resend button
+// ============================================
+document.getElementById('btn-resend-verification').addEventListener('click', function() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var btn = document.getElementById('btn-resend-verification');
+  var statusEl = document.getElementById('verify-status');
+
+  sendEmailVerification(user)
+    .then(function() {
+      showVerifyStatus('Email sent! Check your inbox and spam folder.', 'success');
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> SENT!';
+      btn.style.opacity = '0.6';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> RESEND EMAIL';
+        btn.style.opacity = '';
+        hideVerifyStatus();
+      }, 60000);
+    })
+    .catch(function(error) {
+      showVerifyStatus('Error: ' + error.message, 'error');
+    });
+});
+
+// ============================================
+// VERIFY EMAIL SCREEN — I've verified button
+// ============================================
+document.getElementById('btn-check-verified').addEventListener('click', function() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var btn = document.getElementById('btn-check-verified');
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> CHECKING...';
+
+  user.reload().then(function() {
+    if (auth.currentUser.emailVerified) {
+      showVerifyStatus('Verified! Taking you in...', 'success');
+      var userRef = doc(db, 'users', auth.currentUser.uid);
+      getDoc(userRef).then(function(snapshot) {
+        if (snapshot.exists() && snapshot.data().username) {
+          var username = snapshot.data().username;
+          if (document.getElementById('nav-username'))
+            document.getElementById('nav-username').textContent = username;
+          if (document.getElementById('hero-username'))
+            document.getElementById('hero-username').textContent = username;
+          showScreen('screen-lobby');
+          loadDashboard(auth.currentUser);
+        } else {
+          showScreen('screen-username');
+        }
+      });
+    } else {
+      showVerifyStatus('Not verified yet. Please click the link in your email.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> I\'VE VERIFIED MY EMAIL';
+    }
+  }).catch(function(error) {
+    showVerifyStatus('Error checking status: ' + error.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> I\'VE VERIFIED MY EMAIL';
+  });
+});
+
+// ============================================
+// VERIFY EMAIL SCREEN — Logout link
+// ============================================
+document.getElementById('btn-verify-logout').addEventListener('click', function() {
+  signOut(auth).catch(function(error) { console.error(error); });
+});
+
+// ============================================
+// VERIFY SCREEN HELPERS
+// ============================================
+function showVerifyStatus(message, type) {
+  var el = document.getElementById('verify-status');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'verify-status ' + type;
+  el.style.display = 'block';
+}
+
+function hideVerifyStatus() {
+  var el = document.getElementById('verify-status');
+  if (!el) return;
+  el.style.display = 'none';
+  el.className = 'verify-status';
+  el.textContent = '';
+}
 
 // ============================================
 // SAVE USERNAME
@@ -573,11 +676,31 @@ function generateRoomCode() {
 }
 
 // ============================================
+// EMAIL VERIFICATION GUARD
+// Returns true if action is allowed, false if blocked
+// ============================================
+function requiresVerification(roomType) {
+  // public rooms and admin rooms require verified email
+  if (roomType === 'public' || roomType === 'admin') {
+    var user = auth.currentUser;
+    if (!user || !user.emailVerified) {
+      alert('You need a verified email address to create or join public rooms. Please verify your email first.');
+      return false;
+    }
+  }
+  return true;
+}
+
+// ============================================
 // CREATE ROOM
 // ============================================
 document.getElementById('btn-create-room').addEventListener('click', async function() {
   var user = auth.currentUser;
   if (!user) return;
+
+  // Block unverified users from creating public rooms
+  if (!requiresVerification(selectedRoomType)) return;
+
   var roomCode = generateRoomCode();
   currentRoomCode = roomCode;
   isHost = true;
@@ -623,6 +746,10 @@ document.getElementById('btn-join-room').addEventListener('click', async functio
     if (!roomSnap.exists()) { alert('Room not found!'); return; }
     if (roomSnap.data().status !== 'waiting') { alert('This room has already started!'); return; }
     var roomData = roomSnap.data();
+
+    // Block unverified users from joining public or admin rooms
+    if (!requiresVerification(roomData.type)) return;
+
     var currentPlayers = Object.keys(roomData.players || {}).length;
     var maxAllowed = roomData.maxPlayers || 10;
     if (currentPlayers >= maxAllowed) { alert('This room is full! (' + maxAllowed + '/' + maxAllowed + ' players)'); return; }
@@ -937,7 +1064,6 @@ async function handleTimerEnd() {
     var updatePayload = {};
 
     if (data.currentBidder) {
-      // SOLD
       soldPlayers.push({
         playerName: player.name,
         playerRole: player.role,
@@ -946,13 +1072,11 @@ async function handleTimerEnd() {
         soldToId: data.currentBidder,
         soldFor: data.currentBid || player.basePrice
       });
-      // Write result to Firestore so ALL users see the animation
       updatePayload.lastResult = 'sold';
       updatePayload.lastResultPlayer = player.name;
       updatePayload.lastResultBuyer = data.currentBidderEmail;
       updatePayload.lastResultAmount = data.currentBid || player.basePrice;
     } else {
-      // UNSOLD
       updatePayload.lastResult = 'unsold';
       updatePayload.lastResultPlayer = player.name;
       updatePayload.lastResultBuyer = null;
@@ -974,7 +1098,7 @@ async function handleTimerEnd() {
     updatePayload.currentBidder = null;
     updatePayload.currentBidderEmail = 'No bids yet';
     updatePayload.soldPlayers = soldPlayers;
-    updatePayload.timerStartedAt = now.getTime() + 2500; // delay so animation plays first
+    updatePayload.timerStartedAt = now.getTime() + 2500;
     updatePayload.timerDuration = settings.timer || 30;
 
     await updateDoc(roomRef, updatePayload);
@@ -987,10 +1111,8 @@ async function handleTimerEnd() {
 // SOLD/UNSOLD ANIMATIONS
 // ============================================
 function showSoldAnimation(playerName, buyerName, amount) {
-  // Remove any existing overlay first
   var existing = document.getElementById('result-overlay');
   if (existing) existing.remove();
-
   var overlay = document.createElement('div');
   overlay.id = 'result-overlay';
   overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
@@ -1005,7 +1127,6 @@ function showSoldAnimation(playerName, buyerName, amount) {
 function showUnsoldAnimation(playerName) {
   var existing = document.getElementById('result-overlay');
   if (existing) existing.remove();
-
   var overlay = document.createElement('div');
   overlay.id = 'result-overlay';
   overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
@@ -1020,9 +1141,7 @@ function showUnsoldAnimation(playerName) {
 // LISTEN TO AUCTION
 // ============================================
 var lastPlayerIndex = -1;
-// BUG 2 FIX: track lastBidder to reset timer on new bid
 var lastBidder = null;
-// BUG 3 FIX: track lastResult to avoid showing animation multiple times
 var lastResultKey = null;
 
 function listenToAuction(roomCode) {
@@ -1045,7 +1164,6 @@ function listenToAuction(roomCode) {
 
     var player = orderedPlayers[idx];
 
-    // Apply budget from settings
     if (settings.budget) {
       var soldPlayers = data.soldPlayers || [];
       var user = auth.currentUser;
@@ -1074,25 +1192,19 @@ function listenToAuction(roomCode) {
       var basePriceEl = document.getElementById('base-price');
       if (basePriceEl) basePriceEl.innerHTML = '₹' + player.basePrice + ' Cr';
     }
-    // Update player counter
+
     var counterEl = document.getElementById('current-player-num');
     var totalEl = document.getElementById('total-player-num');
     if (counterEl) counterEl.textContent = idx + 1;
     if (totalEl) totalEl.textContent = orderedPlayers.length;
 
-    // Update bid display
     var bid = data.currentBid || 0;
     document.getElementById('current-bid-amount').textContent = '₹' + bid + ' Cr';
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
-    // Update sold list
     if (data.soldPlayers) updateSoldList(data.soldPlayers);
-
-    // Update players info panel
     updatePlayersInfoPanel(data);
 
-    // ---- BUG 3 FIX: Show SOLD/UNSOLD animation for ALL users ----
-    // Use idx + lastResult as a unique key to prevent re-showing
     var resultKey = (data.lastResult || '') + '_' + idx + '_' + (data.lastResultPlayer || '');
     if (data.lastResult && resultKey !== lastResultKey) {
       lastResultKey = resultKey;
@@ -1103,12 +1215,10 @@ function listenToAuction(roomCode) {
       }
     }
 
-    // ---- Timer logic ----
     var timerDuration = settings.timer || 30;
     currentTimerDuration = timerDuration;
 
     var playerChanged = idx !== lastPlayerIndex;
-    // BUG 2 FIX: also reset timer when bidder changes
     var bidderChanged = data.currentBidder !== lastBidder;
 
     if (playerChanged || bidderChanged) {
@@ -1183,7 +1293,6 @@ function startTimer(seconds, totalSeconds) {
   var timerBarFill = document.getElementById('auc-timer-bar-fill');
   var timerBarAmount = document.getElementById('auc-timer-bar-val');
 
-
   function updateTimerUI() {
     if (timerEl) {
       timerEl.textContent = timeLeft;
@@ -1210,7 +1319,6 @@ function startTimer(seconds, totalSeconds) {
       timerInterval = null;
       if (timerEl) timerEl.textContent = '0';
       if (timerBarFill) timerBarFill.style.width = '0%';
-      // Auto sold/unsold — only host triggers
       if (isHost) handleTimerEnd();
       return;
     }
@@ -1255,7 +1363,7 @@ async function placeBid(amount) {
       currentBid: newBid,
       currentBidder: user.uid,
       currentBidderEmail: displayName,
-      timerStartedAt: now.getTime(),  // BUG 2 FIX: reset timer on bid
+      timerStartedAt: now.getTime(),
     });
   } catch (error) {
     console.error('Bid error:', error);
