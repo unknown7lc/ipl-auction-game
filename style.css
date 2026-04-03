@@ -1572,59 +1572,56 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 }
 
 #screen-verify .login-card {
-  padding: 28px 28px 24px;
+  padding: 24px 28px 20px;
   max-width: 400px;
 }
 
+#screen-verify .login-card .btn-primary {
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+#screen-verify .login-card .btn-secondary {
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
 #screen-verify .login-logo {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 #screen-verify .login-logo-icon {
-  width: 52px; height: 52px;
-  margin-bottom: 10px;
-}
-
-#screen-verify .login-logo h1 {
-  font-size: 1.5rem;
-}
-
-#screen-verify .login-logo p {
-  font-size: 0.65rem;
-}
-
-#screen-verify .btn-primary {
-  padding: 12px 20px;
-  font-size: 0.88rem;
+  width: 48px; height: 48px;
   margin-bottom: 8px;
 }
 
-#screen-verify .btn-secondary {
-  padding: 12px 20px;
-  font-size: 0.88rem;
-  margin-bottom: 8px;
-}
+#screen-verify .login-logo h1 { font-size: 1.4rem; }
+#screen-verify .login-logo p { font-size: 0.63rem; }
 
 .verify-icon-box {
-  width: 64px; height: 64px;
+  width: 58px; height: 58px;
   background: rgba(233,69,96,0.08);
   border: 1px solid rgba(233,69,96,0.2);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--red);
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   flex-shrink: 0;
 }
 
+.verify-icon-box svg { width: 28px; height: 28px; }
+
 .verify-email-chip {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 6px 16px;
+  padding: 5px 14px;
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border2);
   border-radius: 20px;
-  font-family: var(--font-b); font-size: 0.85rem;
+  font-family: var(--font-b); font-size: 0.83rem;
   color: var(--text2);
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
   width: fit-content;
   max-width: 100%;
 }
@@ -1633,28 +1630,31 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 .verify-desc {
   color: var(--text2);
-  font-size: 0.84rem;
-  line-height: 1.65;
+  font-size: 0.82rem;
+  line-height: 1.6;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .verify-status {
-  padding: 9px 14px;
+  display: none;
+  padding: 8px 14px;
   border-radius: 10px;
   font-size: 0.8rem;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-family: var(--font-b);
 }
 
 .verify-status.success {
+  display: block;
   background: rgba(40,167,69,0.1);
   border: 1px solid rgba(40,167,69,0.3);
   color: #28a745;
 }
 
 .verify-status.error {
+  display: block;
   background: rgba(233,69,96,0.1);
   border: 1px solid rgba(233,69,96,0.3);
   color: var(--red2);
@@ -1663,13 +1663,13 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 .verify-divider {
   height: 1px;
   background: var(--border2);
-  margin: 2px 0 8px;
+  margin: 4px 0 6px;
   width: 100%;
 }
 
 .verify-switch-btn {
   width: 100%;
-  padding: 10px 20px;
+  padding: 8px 20px;
   background: transparent;
   border: none;
   color: var(--text2);
@@ -1684,3 +1684,55 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 }
 
 .verify-switch-btn:hover { color: var(--red); }
+
+.auth-error-box {
+  display: none;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: var(--font-b);
+  background: rgba(233,69,96,0.1);
+  border: 1px solid rgba(233,69,96,0.3);
+  color: var(--red2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==============================
+   LOGIN SCREEN COMPACT
+============================== */
+#screen-login .login-card {
+  padding: 28px 32px 24px;
+}
+
+#screen-login .login-logo {
+  margin-bottom: 20px;
+}
+
+#screen-login .login-logo-icon {
+  width: 56px; height: 56px;
+  margin-bottom: 10px;
+}
+
+#screen-login .login-logo h1 { font-size: 1.8rem; }
+#screen-login .login-logo p { font-size: 0.65rem; }
+
+#screen-login .input-group {
+  margin-bottom: 10px;
+}
+
+#screen-login .login-card .btn-primary {
+  padding: 13px 20px;
+  margin-bottom: 6px;
+}
+
+#screen-login .login-card .btn-secondary {
+  padding: 13px 20px;
+  margin-bottom: 6px;
+}
+
+#screen-login .auth-divider {
+  margin: 8px 0;
+}
