@@ -492,7 +492,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 /* ==============================
    DASHBOARD
 ============================== */
-#screen-lobby { justify-content:flex-start; align-items:flex-start; overflow-y:auto; }
+#screen-lobby { justify-content:flex-start; align-items:flex-start; overflow-y:auto; overflow-x:hidden; scroll-padding-top:100px; }
 
 .dashboard-content {
   width:100%; max-width:960px;
@@ -1805,4 +1805,132 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
   padding: 13px 20px;
   font-size: 0.95rem;
   margin-bottom: 8px;
+}
+
+/* ==============================
+   PUBLIC ROOMS
+============================== */
+.public-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: all var(--ease);
+  gap: 12px;
+}
+
+.public-room-card:hover {
+  border-color: var(--border);
+  background: rgba(233,69,96,0.04);
+  transform: translateY(-1px);
+}
+
+.public-room-left { display: flex; flex-direction: column; gap: 4px; }
+
+.public-room-code {
+  font-family: var(--font-d);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 3px;
+}
+
+.public-room-meta {
+  font-size: 0.75rem;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+}
+
+.public-room-meta span { color: var(--text2); }
+
+.public-room-right { display: flex; align-items: center; gap: 10px; }
+
+.public-room-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-d);
+  font-size: 0.82rem;
+  color: var(--text2);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.public-room-count.full { color: var(--text3); }
+
+.public-room-join-btn {
+  padding: 7px 18px;
+  background: rgba(233,69,96,0.1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--red);
+  font-family: var(--font-d);
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--ease);
+  white-space: nowrap;
+}
+
+.public-room-join-btn:hover:not([disabled]) {
+  background: var(--red);
+  color: white;
+  box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+}
+
+.public-room-join-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--text3);
+  border-color: var(--border2);
+  background: transparent;
+}
+
+/* Verification banner offset for dashboard content */
+#verify-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(233,69,96,0.08);
+  border: 1px solid rgba(233,69,96,0.25);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+body.unverified .dashboard-content {
+  padding-top: 78px;
+}
+
+/* ==============================
+   BID COMPOSITION INFO BOX
+============================== */
+.bid-composition-info {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: var(--font-b);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+  display: none;
+}
+
+.bid-composition-info.block {
+  display: block;
+  background: rgba(233,69,96,0.08);
+  border: 1px solid rgba(233,69,96,0.3);
+  color: var(--red2);
+}
+
+.bid-composition-info.warning {
+  display: block;
+  background: rgba(255,193,7,0.08);
+  border: 1px solid rgba(255,193,7,0.3);
+  color: #ffc107;
 }
