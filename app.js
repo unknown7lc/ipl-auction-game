@@ -4,8 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 // ============================================
 // GLOBAL VARIABLES
 // ============================================
@@ -223,6 +222,9 @@ document.getElementById('btn-verify-otp').addEventListener('click', async functi
             document.getElementById('nav-username').textContent = snapshot.data().username;
           if (document.getElementById('hero-username'))
             document.getElementById('hero-username').textContent = snapshot.data().username;
+          document.body.classList.remove('unverified'); 
+          var b = document.getElementById('verify-banner');
+          if (b) b.remove();
           showScreen('screen-lobby');
           loadDashboard(user);
         } else {
@@ -395,26 +397,30 @@ onAuthStateChanged(auth, function(user) {
   if (user) {
     var userRef = doc(db, 'users', user.uid);
     getDoc(userRef).then(function(snapshot) {
-      if (!snapshot.exists() || !snapshot.data().emailVerified) {
-        // Not verified — show OTP screen
-        var chipEl = document.getElementById('otp-email-display');
-        if (chipEl) chipEl.textContent = user.email;
-        showScreen('screen-otp');
+      var data = snapshot.exists() ? snapshot.data() : {};
+      var isVerified = data.emailVerified === true;
+      var hasUsername = !!(data.username);
+
+      if (!snapshot.exists() || !hasUsername) {
+        // New user or no username yet — go to username screen
+        showScreen('screen-username');
         return;
       }
-      var data = snapshot.data();
-      if (data.username) {
-        if (document.getElementById('nav-username'))
-          document.getElementById('nav-username').textContent = data.username;
-        if (document.getElementById('hero-username'))
-          document.getElementById('hero-username').textContent = data.username;
-        showScreen('screen-lobby');
-        loadDashboard(user);
-      } else {
-        showScreen('screen-username');
-      }
+
+      // Has username — go straight to dashboard
+      if (document.getElementById('nav-username'))
+        document.getElementById('nav-username').textContent = data.username;
+      if (document.getElementById('hero-username'))
+        document.getElementById('hero-username').textContent = data.username;
+      showScreen('screen-lobby');
+      loadDashboard(user);
+      showVerificationBanner(isVerified);
     });
   } else {
+    // Logged out — always go to login screen
+    var banner = document.getElementById('verify-banner');
+    if (banner) banner.remove();
+    document.body.classList.remove('unverified');
     showScreen('screen-login');
   }
 });
@@ -456,11 +462,13 @@ document.getElementById('btn-register').addEventListener('click', function() {
   }
   createUserWithEmailAndPassword(auth, email, password)
     .then(function(userCredential) {
-      sendOTPToUser(userCredential.user);
+      track('sign_up', { method: 'email' });
+      // onAuthStateChanged will handle navigation automatically
     })
     .catch(function(error) {
       errEl.textContent = error.message;
       errEl.style.display = 'block';
+      track('signup_error', { error: error.code });
     });
 });
 
@@ -499,12 +507,45 @@ document.getElementById('btn-save-username').addEventListener('click', async fun
 });
 
 // ============================================
+//  VERIFICATION BANNER
+// ============================================
+function showVerificationBanner(isVerified) {
+  var existing = document.getElementById('verify-banner');
+  if (existing) existing.remove();
+  document.body.classList.remove('unverified');
+  if (isVerified) return;
+
+  var banner = document.createElement('div');
+  banner.id = 'verify-banner';
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;font-family:var(--font-b);font-size:0.8rem;color:var(--text2);letter-spacing:0.3px;flex:1;">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+      'Email not verified. You can browse freely, but cannot create or join public or official global rooms.' +
+    '</div>' +
+    '<button id="banner-verify-btn" style="padding:6px 16px;background:linear-gradient(135deg,#e94560,#c0392b);border:none;border-radius:8px;color:white;font-family:var(--font-d);font-size:0.75rem;letter-spacing:1px;cursor:pointer;white-space:nowrap;flex-shrink:0;">VERIFY NOW</button>';
+
+  // Insert as first child of dashboard-content, not fixed to body
+  var dashContent = document.getElementById('dashboard-content') || document.querySelector('.dashboard-content');
+  if (dashContent) {
+    dashContent.insertBefore(banner, dashContent.firstChild);
+  }
+  document.body.classList.add('unverified');
+
+  document.getElementById('banner-verify-btn').addEventListener('click', function() {
+    var user = auth.currentUser;
+    if (!user) return;
+    sendOTPToUser(user);
+  });
+}
+
+// ============================================
 // DASHBOARD
 // ============================================
 function loadDashboard(user) {
   loadUserStats(user);
   loadActiveEvents();
   loadGlobalLeaderboard(user);
+  loadPublicRooms();
 }
 
 function loadUserStats(user) {
@@ -538,6 +579,59 @@ function loadGlobalLeaderboard(user) {
     '<div class="lb-row"><span class="lb-rank lb-rank-bronze">3</span><div class="lb-avatar">AA</div><span class="lb-name">AuctionAce</span><span class="lb-pts">1,840 pts</span></div>';
 }
 
+function loadPublicRooms() {
+  var container = document.getElementById('public-rooms-list');
+  if (!container) return;
+
+  var q = query(collection(db, 'rooms'), where('type', '==', 'public'), where('status', '==', 'waiting'));
+  onSnapshot(q, function(snapshot) {
+    container.innerHTML = '';
+    if (snapshot.empty) {
+      container.innerHTML = '<p style="color:var(--text3);font-size:0.82rem;text-align:center;padding:20px 0;letter-spacing:0.5px;">No public rooms available right now. Create one!</p>';
+      return;
+    }
+    snapshot.forEach(function(docSnap) {
+      var room = docSnap.data();
+      var playerCount = Object.keys(room.players || {}).length;
+      var maxAllowed = room.maxPlayers || 10;
+      var isFull = playerCount >= maxAllowed;
+
+      var div = document.createElement('div');
+      div.className = 'public-room-card';
+      div.innerHTML =
+        '<div class="public-room-left">' +
+          '<div class="public-room-code">' + room.code + '</div>' +
+          '<div class="public-room-meta">Hosted by <span>' + (room.host || 'Unknown') + '</span></div>' +
+        '</div>' +
+        '<div class="public-room-right">' +
+          '<div class="public-room-count' + (isFull ? ' full' : '') + '">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+            playerCount + ' / ' + maxAllowed +
+          '</div>' +
+          '<button class="public-room-join-btn" data-code="' + room.code + '" ' + (isFull ? 'disabled' : '') + '>' +
+            (isFull ? 'FULL' : 'JOIN') +
+          '</button>' +
+        '</div>';
+      container.appendChild(div);
+    });
+
+    // Attach join handlers
+    container.querySelectorAll('.public-room-join-btn:not([disabled])').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var user = auth.currentUser;
+        if (!user) return;
+        var snap = await getDoc(doc(db, 'users', user.uid));
+        if (!snap.exists() || !snap.data().emailVerified) {
+          await sendOTPToUser(user);
+          return;
+        }
+        document.getElementById('join-code').value = btn.dataset.code;
+        document.getElementById('btn-join-room').click();
+      });
+    });
+  });
+}
+
 // ============================================
 // ROOM TYPE TOGGLE
 // ============================================
@@ -566,12 +660,13 @@ function generateRoomCode() {
 // EMAIL VERIFICATION GUARD
 // Returns true if action is allowed, false if blocked
 // ============================================
-function requiresVerification(roomType) {
-  // public rooms and admin rooms require verified email
+async function requiresVerification(roomType) {
   if (roomType === 'public' || roomType === 'admin') {
     var user = auth.currentUser;
-    if (!user || !user.emailVerified) {
-      alert('You need a verified email address to create or join public rooms. Please verify your email first.');
+    if (!user) return false;
+    var snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists() || !snap.data().emailVerified) {
+      await sendOTPToUser(user);
       return false;
     }
   }
@@ -586,7 +681,7 @@ document.getElementById('btn-create-room').addEventListener('click', async funct
   if (!user) return;
 
   // Block unverified users from creating public rooms
-  if (!requiresVerification(selectedRoomType)) return;
+  if (!await requiresVerification(selectedRoomType)) return;
 
   var roomCode = generateRoomCode();
   currentRoomCode = roomCode;
@@ -637,7 +732,7 @@ document.getElementById('btn-join-room').addEventListener('click', async functio
     var roomData = roomSnap.data();
 
     // Block unverified users from joining public or admin rooms
-    if (!requiresVerification(roomData.type)) return;
+    if (!await requiresVerification(roomData.type)) return;
 
     var currentPlayers = Object.keys(roomData.players || {}).length;
     var maxAllowed = roomData.maxPlayers || 10;
@@ -688,7 +783,14 @@ document.getElementById('btn-leave-room').addEventListener('click', async functi
     var data = roomSnap.data();
     var players = data.players || {};
     delete players[user.uid];
-    await updateDoc(roomRef, { players: players });
+
+    // If no players left, delete the room entirely
+    if (Object.keys(players).length === 0) {
+      await deleteDoc(roomRef);
+    } else {
+      await updateDoc(roomRef, { players: players });
+    }
+
     currentRoomCode = null;
     isHost = false;
     showScreen('screen-lobby');
@@ -1032,6 +1134,21 @@ function showUnsoldAnimation(playerName) {
 }
 
 // ============================================
+// UPDATE BUDGET BAR
+// ============================================
+function updateBudgetBar(remaining, total) {
+  var fill = document.getElementById('auc-budget-fill');
+  var amount = document.getElementById('auc-budget-val');
+  if (!fill || !amount) return;
+  var pct = Math.max(0, (remaining / total) * 100);
+  fill.style.width = pct + '%';
+  amount.textContent = '₹' + remaining + ' Cr';
+  if (pct < 30) fill.style.background = '#dc3545';
+  else if (pct < 60) fill.style.background = '#ffc107';
+  else fill.style.background = 'linear-gradient(135deg,#e94560,#c0392b)';
+}
+
+// ============================================
 // LISTEN TO AUCTION
 // ============================================
 var lastPlayerIndex = -1;
@@ -1101,6 +1218,7 @@ function listenToAuction(roomCode) {
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
     if (data.soldPlayers) updateSoldList(data.soldPlayers);
+    updateBidButtons(data);
     updatePlayersInfoPanel(data);
 
     var resultKey = (data.lastResult || '') + '_' + idx + '_' + (data.lastResultPlayer || '');
@@ -1227,16 +1345,137 @@ function startTimer(seconds, totalSeconds) {
 // ============================================
 // UPDATE BUDGET BAR
 // ============================================
-function updateBudgetBar(remaining, total) {
-  var fill = document.getElementById('auc-budget-fill');
-  var amount = document.getElementById('auc-budget-val');
-  if (!fill || !amount) return;
-  var pct = Math.max(0, (remaining / total) * 100);
-  fill.style.width = pct + '%';
-  amount.textContent = '₹' + remaining + ' Cr';
-  if (pct < 30) fill.style.background = '#dc3545';
-  else if (pct < 60) fill.style.background = '#ffc107';
-  else fill.style.background = 'linear-gradient(135deg,#e94560,#c0392b)';
+// ============================================
+// SQUAD COMPOSITION RULES
+// ============================================
+function getCompositionRules(squadSize) {
+  var rules = {
+    11: { Batsman:{min:3,max:4}, Bowler:{min:2,max:4}, 'All-rounder':{min:1,max:3}, Wicketkeeper:{min:1,max:1} },
+    16: { Batsman:{min:4,max:6}, Bowler:{min:3,max:5}, 'All-rounder':{min:2,max:4}, Wicketkeeper:{min:1,max:2} },
+    20: { Batsman:{min:5,max:8}, Bowler:{min:4,max:6}, 'All-rounder':{min:3,max:5}, Wicketkeeper:{min:1,max:2} },
+    25: { Batsman:{min:6,max:10}, Bowler:{min:5,max:8}, 'All-rounder':{min:4,max:6}, Wicketkeeper:{min:2,max:3} }
+  };
+  return rules[squadSize] || rules[16];
+}
+
+function getMyRoleCounts(soldPlayers, userId) {
+  var counts = { Batsman:0, Bowler:0, 'All-rounder':0, Wicketkeeper:0 };
+  soldPlayers.filter(function(p) { return p.soldToId === userId; }).forEach(function(p) {
+    if (counts[p.playerRole] !== undefined) counts[p.playerRole]++;
+  });
+  return counts;
+}
+
+// Returns { allowed: bool, reason: string, warning: string }
+function checkBidAllowed(playerRole, roleCounts, squadSize, currentTotal, settings) {
+  var rules = getCompositionRules(squadSize);
+  var roleRule = rules[playerRole];
+  if (!roleRule) return { allowed: true, reason: null, warning: null };
+
+  // Check 1: max limit for this role
+  if (roleCounts[playerRole] >= roleRule.max) {
+    return {
+      allowed: false,
+      reason: 'You already have the maximum ' + roleRule.max + ' ' + playerRole + (roleRule.max > 1 ? 's' : '') + ' allowed.',
+      warning: null
+    };
+  }
+
+  // Check 2: spot reservation — after buying this player, can we still fill minimums of other roles?
+  var spotsLeft = squadSize - currentTotal - 1; // -1 for buying this player
+  var unfilledOtherRoles = [];
+  var spotsNeeded = 0;
+
+  Object.keys(rules).forEach(function(role) {
+    if (role === playerRole) return;
+    var stillNeeded = Math.max(0, rules[role].min - roleCounts[role]);
+    if (stillNeeded > 0) {
+      spotsNeeded += stillNeeded;
+      unfilledOtherRoles.push(stillNeeded + ' ' + role + (stillNeeded > 1 ? (role === 'All-rounder' ? 's' : 's') : ''));
+    }
+  });
+
+  if (spotsLeft < spotsNeeded) {
+    return {
+      allowed: false,
+      reason: 'Must reserve remaining spots for: ' + unfilledOtherRoles.join(', ') + '.',
+      warning: null
+    };
+  }
+
+  // Check 3: soft warning — spots are tight
+  if (spotsLeft <= spotsNeeded + 1 && spotsNeeded > 0) {
+    return {
+      allowed: true,
+      reason: null,
+      warning: 'Tight on spots — still need: ' + unfilledOtherRoles.join(', ') + '.'
+    };
+  }
+
+  return { allowed: true, reason: null, warning: null };
+}
+
+function updateBidButtons(data) {
+  var user = auth.currentUser;
+  if (!user) return;
+
+  var settings = data.settings || {};
+  var squadSize = settings.squadSize || 16;
+  var soldPlayers = data.soldPlayers || [];
+  var idx = data.currentPlayerIndex || 0;
+  var orderedPlayers = (settings.playerOrder && settings.playerOrder.length > 0)
+    ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === Number(id); }); }).filter(Boolean)
+    : IPL_PLAYERS;
+
+  var player = orderedPlayers[idx];
+  if (!player) return;
+
+  var myPlayers = soldPlayers.filter(function(p) { return p.soldToId === user.uid; });
+  var currentTotal = myPlayers.length;
+  var roleCounts = getMyRoleCounts(soldPlayers, user.uid);
+
+  // Check if squad is already full
+  var infoBox = document.getElementById('bid-composition-info');
+  var bidBtns = [
+    document.getElementById('btn-bid-5'),
+    document.getElementById('btn-bid-10'),
+    document.getElementById('btn-bid-20')
+  ];
+
+  if (currentTotal >= squadSize) {
+    showBidInfo('Your squad is full (' + squadSize + '/' + squadSize + ' players).', 'block');
+    bidBtns.forEach(function(btn) { btn.disabled = true; btn.style.opacity = '0.4'; });
+    return;
+  }
+
+  var result = checkBidAllowed(player.role, roleCounts, squadSize, currentTotal, settings);
+
+  if (!result.allowed) {
+    showBidInfo(result.reason, 'block');
+    bidBtns.forEach(function(btn) { btn.disabled = true; btn.style.opacity = '0.4'; });
+  } else if (result.warning) {
+    showBidInfo(result.warning, 'warning');
+    bidBtns.forEach(function(btn) { btn.disabled = false; btn.style.opacity = '1'; });
+  } else {
+    hideBidInfo();
+    bidBtns.forEach(function(btn) { btn.disabled = false; btn.style.opacity = '1'; });
+  }
+}
+
+function showBidInfo(message, type) {
+  var box = document.getElementById('bid-composition-info');
+  if (!box) return;
+  box.textContent = message;
+  box.className = 'bid-composition-info ' + type;
+  box.style.display = 'block';
+}
+
+function hideBidInfo() {
+  var box = document.getElementById('bid-composition-info');
+  if (!box) return;
+  box.style.display = 'none';
+  box.className = 'bid-composition-info';
+  box.textContent = '';
 }
 
 // ============================================
@@ -1412,7 +1651,7 @@ document.getElementById('btn-view-season').addEventListener('click', function() 
 document.getElementById('btn-share-result').addEventListener('click', function() {
   var shareText = 'My AuctionX Team!\n\n';
   myTeamPlayers.forEach(function(p) { shareText += p.playerName + ' - ₹' + p.soldFor + ' Cr\n'; });
-  shareText += '\nTotal Spent: ₹' + budgetSpent + ' Cr\nPlay at: https://YOUR-USERNAME.github.io/ipl-auction-game';
+  shareText += '\nTotal Spent: ₹' + budgetSpent + ' Cr\nPlay at: https://YOUR-USERNAME.github.io/auctionx';
   navigator.clipboard.writeText(shareText).then(function() { alert('Team copied to clipboard!'); });
 });
 document.getElementById('btn-new-auction').addEventListener('click', function() {
