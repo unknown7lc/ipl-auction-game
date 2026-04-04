@@ -63,9 +63,9 @@
   </div>
 </div>
 
-<!-- SCREEN: Verify Email -->
-<div id="screen-verify" class="screen">
-  <div class="login-card" style="max-width:420px; padding-bottom:28px;">
+<!-- SCREEN: OTP Verification -->
+<div id="screen-otp" class="screen">
+  <div class="login-card" style="max-width:420px;">
     <div class="login-logo">
       <div class="login-logo-icon">
         <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
@@ -76,11 +76,11 @@
         </svg>
       </div>
       <h1>AUCTIONX</h1>
-      <p>CHECK YOUR INBOX</p>
+      <p>VERIFY YOUR EMAIL</p>
     </div>
 
     <div class="verify-icon-box">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
         <polyline points="22,6 12,13 2,6"/>
       </svg>
@@ -91,33 +91,42 @@
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
         <polyline points="22,6 12,13 2,6"/>
       </svg>
-      <span id="verify-email-display">your@email.com</span>
+      <span id="otp-email-display">your@email.com</span>
     </div>
 
     <p class="verify-desc">
-      We've sent a verification link to your email address. Click the link to verify your account, then come back here.
+      We've sent a 6-digit verification code to your email. Enter it below to verify your account.
     </p>
 
-    <div id="verify-status" class="verify-status" style="display:none;"></div>
+    <div class="otp-input-row">
+      <input type="text" class="otp-input" maxlength="1" id="otp-1" />
+      <input type="text" class="otp-input" maxlength="1" id="otp-2" />
+      <input type="text" class="otp-input" maxlength="1" id="otp-3" />
+      <input type="text" class="otp-input" maxlength="1" id="otp-4" />
+      <input type="text" class="otp-input" maxlength="1" id="otp-5" />
+      <input type="text" class="otp-input" maxlength="1" id="otp-6" />
+    </div>
 
-    <button id="btn-check-verified" class="btn-primary">
+    <div id="otp-status" class="verify-status" style="display:none;"></div>
+
+    <button id="btn-verify-otp" class="btn-primary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
-      I'VE VERIFIED MY EMAIL
+      VERIFY CODE
     </button>
 
-    <button id="btn-resend-verification" class="btn-secondary">
+    <button id="btn-resend-otp" class="btn-secondary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="1 4 1 10 7 10"/>
         <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
       </svg>
-      RESEND EMAIL
+      RESEND CODE
     </button>
 
     <div class="verify-divider"></div>
 
-    <button id="btn-verify-logout" class="verify-switch-btn">
+    <button id="btn-otp-logout" class="verify-switch-btn">
       ← USE A DIFFERENT ACCOUNT
     </button>
   </div>

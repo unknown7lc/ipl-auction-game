@@ -1736,3 +1736,73 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 #screen-login .auth-divider {
   margin: 8px 0;
 }
+
+/* ==============================
+   OTP SCREEN
+============================== */
+#screen-otp .login-card {
+  padding: 24px 28px 20px;
+  max-width: 420px;
+}
+
+#screen-otp .login-logo { margin-bottom: 8px; }
+#screen-otp .login-logo-icon { width: 48px; height: 48px; margin-bottom: 8px; }
+#screen-otp .login-logo h1 { font-size: 1.4rem; }
+#screen-otp .login-logo p { font-size: 0.63rem; }
+
+#screen-otp .login-card .btn-primary {
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+#screen-otp .login-card .btn-secondary {
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.otp-input-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.otp-input {
+  width: 46px;
+  height: 54px;
+  text-align: center;
+  font-family: var(--font-d);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-input);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  outline: none;
+  transition: all var(--ease);
+  padding: 0;
+  margin: 0;
+  caret-color: var(--red);
+}
+
+.otp-input:focus {
+  border-color: var(--red);
+  background: rgba(233,69,96,0.06);
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.12);
+}
+
+.otp-input.filled {
+  border-color: rgba(233,69,96,0.4);
+  background: rgba(233,69,96,0.05);
+}
+
+/* ==============================
+   USERNAME SCREEN Button Fix
+============================== */
+#screen-username .login-card .btn-primary {
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}

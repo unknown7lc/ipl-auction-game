@@ -2,6 +2,7 @@
 // FIREBASE SETUP
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -39,291 +40,260 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
 // ============================================
-// IPL 2026 PLAYERS DATA
+// BREVO CONFIG
 // ============================================
-// ============================================
-// IPL 2026 PLAYERS DATA — Full 250 Player List
-// Roles: "Batsman" | "Bowler" | "All-rounder" | "Wicketkeeper"
-// basePrice: in Cr (0.5 = uncapped/young, 1 = regular, 2 = star)
-// ============================================
-
-const IPL_PLAYERS = [
-
-  // ==================== CSK — Chennai Super Kings ====================
-  { id: 1,   name: "Ruturaj Gaikwad",     role: "Batsman",      team: "CSK", basePrice: 2 },
-  { id: 2,   name: "MS Dhoni",            role: "Wicketkeeper",  team: "CSK", basePrice: 2 },
-  { id: 3,   name: "Sanju Samson",        role: "Wicketkeeper",  team: "CSK", basePrice: 2 },
-  { id: 4,   name: "Shivam Dube",         role: "All-rounder",   team: "CSK", basePrice: 1 },
-  { id: 5,   name: "Ayush Mhatre",        role: "Batsman",       team: "CSK", basePrice: 1 },
-  { id: 6,   name: "Dewald Brevis",       role: "Batsman",       team: "CSK", basePrice: 1 },
-  { id: 7,   name: "Sarfaraz Khan",       role: "Batsman",       team: "CSK", basePrice: 1 },
-  { id: 8,   name: "Urvil Patel",         role: "Batsman",       team: "CSK", basePrice: 0.5 },
-  { id: 9,   name: "Kartik Sharma",       role: "Batsman",       team: "CSK", basePrice: 1 },
-  { id: 10,  name: "Aman Khan",           role: "Batsman",       team: "CSK", basePrice: 0.5 },
-  { id: 11,  name: "Jamie Overton",       role: "All-rounder",   team: "CSK", basePrice: 1 },
-  { id: 12,  name: "Matthew Short",       role: "All-rounder",   team: "CSK", basePrice: 1 },
-  { id: 13,  name: "Prashant Veer",       role: "All-rounder",   team: "CSK", basePrice: 1 },
-  { id: 14,  name: "Ramakrishna Ghosh",   role: "All-rounder",   team: "CSK", basePrice: 0.5 },
-  { id: 15,  name: "Shreyas Gopal",       role: "All-rounder",   team: "CSK", basePrice: 1 },
-  { id: 16,  name: "Zak Foulkes",         role: "All-rounder",   team: "CSK", basePrice: 0.5 },
-  { id: 17,  name: "Khaleel Ahmed",       role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 18,  name: "Noor Ahmad",          role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 19,  name: "Anshul Kamboj",       role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 20,  name: "Mukesh Choudhary",    role: "Bowler",        team: "CSK", basePrice: 0.5 },
-  { id: 21,  name: "Gurjapneet Singh",    role: "Bowler",        team: "CSK", basePrice: 0.5 },
-  { id: 22,  name: "Akeal Hosein",        role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 23,  name: "Matt Henry",          role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 24,  name: "Rahul Chahar",        role: "Bowler",        team: "CSK", basePrice: 1 },
-  { id: 25,  name: "Spencer Johnson",     role: "Bowler",        team: "CSK", basePrice: 1 },
-
-  // ==================== MI — Mumbai Indians ====================
-  { id: 26,  name: "Rohit Sharma",        role: "Batsman",       team: "MI",  basePrice: 2 },
-  { id: 27,  name: "Suryakumar Yadav",    role: "Batsman",       team: "MI",  basePrice: 2 },
-  { id: 28,  name: "Hardik Pandya",       role: "All-rounder",   team: "MI",  basePrice: 2 },
-  { id: 29,  name: "Jasprit Bumrah",      role: "Bowler",        team: "MI",  basePrice: 2 },
-  { id: 30,  name: "Tilak Varma",         role: "Batsman",       team: "MI",  basePrice: 2 },
-  { id: 31,  name: "Ryan Rickelton",      role: "Wicketkeeper",  team: "MI",  basePrice: 1 },
-  { id: 32,  name: "Quinton de Kock",     role: "Wicketkeeper",  team: "MI",  basePrice: 2 },
-  { id: 33,  name: "Sherfane Rutherford", role: "All-rounder",   team: "MI",  basePrice: 1 },
-  { id: 34,  name: "Robin Minz",          role: "Wicketkeeper",  team: "MI",  basePrice: 0.5 },
-  { id: 35,  name: "Danish Malewar",      role: "Batsman",       team: "MI",  basePrice: 0.5 },
-  { id: 36,  name: "Naman Dhir",          role: "All-rounder",   team: "MI",  basePrice: 0.5 },
-  { id: 37,  name: "Shardul Thakur",      role: "All-rounder",   team: "MI",  basePrice: 1 },
-  { id: 38,  name: "Mitchell Santner",    role: "All-rounder",   team: "MI",  basePrice: 1 },
-  { id: 39,  name: "Will Jacks",          role: "All-rounder",   team: "MI",  basePrice: 1 },
-  { id: 40,  name: "Raj Angad Bawa",      role: "All-rounder",   team: "MI",  basePrice: 0.5 },
-  { id: 41,  name: "Corbin Bosch",        role: "All-rounder",   team: "MI",  basePrice: 1 },
-  { id: 42,  name: "Atharva Ankolekar",   role: "All-rounder",   team: "MI",  basePrice: 0.5 },
-  { id: 43,  name: "Mayank Rawat",        role: "All-rounder",   team: "MI",  basePrice: 0.5 },
-  { id: 44,  name: "Trent Boult",         role: "Bowler",        team: "MI",  basePrice: 2 },
-  { id: 45,  name: "Deepak Chahar",       role: "Bowler",        team: "MI",  basePrice: 1 },
-  { id: 46,  name: "Allah Ghazanfar",     role: "Bowler",        team: "MI",  basePrice: 1 },
-  { id: 47,  name: "Mayank Markande",     role: "Bowler",        team: "MI",  basePrice: 0.5 },
-  { id: 48,  name: "Ashwani Kumar",       role: "Bowler",        team: "MI",  basePrice: 0.5 },
-  { id: 49,  name: "Raghu Sharma",        role: "Bowler",        team: "MI",  basePrice: 0.5 },
-  { id: 50,  name: "Mohammad Izhar",      role: "Bowler",        team: "MI",  basePrice: 0.5 },
-
-  // ==================== RCB — Royal Challengers Bengaluru ====================
-  { id: 51,  name: "Virat Kohli",         role: "Batsman",       team: "RCB", basePrice: 2 },
-  { id: 52,  name: "Rajat Patidar",       role: "Batsman",       team: "RCB", basePrice: 2 },
-  { id: 53,  name: "Devdutt Padikkal",    role: "Batsman",       team: "RCB", basePrice: 1 },
-  { id: 54,  name: "Phil Salt",           role: "Wicketkeeper",  team: "RCB", basePrice: 1 },
-  { id: 55,  name: "Jitesh Sharma",       role: "Wicketkeeper",  team: "RCB", basePrice: 1 },
-  { id: 56,  name: "Jordan Cox",          role: "Wicketkeeper",  team: "RCB", basePrice: 1 },
-  { id: 57,  name: "Krunal Pandya",       role: "All-rounder",   team: "RCB", basePrice: 1 },
-  { id: 58,  name: "Venkatesh Iyer",      role: "All-rounder",   team: "RCB", basePrice: 1 },
-  { id: 59,  name: "Tim David",           role: "All-rounder",   team: "RCB", basePrice: 2 },
-  { id: 60,  name: "Romario Shepherd",    role: "All-rounder",   team: "RCB", basePrice: 1 },
-  { id: 61,  name: "Jacob Bethell",       role: "All-rounder",   team: "RCB", basePrice: 1 },
-  { id: 62,  name: "Swapnil Singh",       role: "All-rounder",   team: "RCB", basePrice: 0.5 },
-  { id: 63,  name: "Mangesh Yadav",       role: "All-rounder",   team: "RCB", basePrice: 0.5 },
-  { id: 64,  name: "Vicky Ostwal",        role: "All-rounder",   team: "RCB", basePrice: 0.5 },
-  { id: 65,  name: "Satvik Deswal",       role: "All-rounder",   team: "RCB", basePrice: 0.5 },
-  { id: 66,  name: "Josh Hazlewood",      role: "Bowler",        team: "RCB", basePrice: 2 },
-  { id: 67,  name: "Bhuvneshwar Kumar",   role: "Bowler",        team: "RCB", basePrice: 1 },
-  { id: 68,  name: "Yash Dayal",          role: "Bowler",        team: "RCB", basePrice: 1 },
-  { id: 69,  name: "Nuwan Thushara",      role: "Bowler",        team: "RCB", basePrice: 1 },
-  { id: 70,  name: "Rasikh Dar",          role: "Bowler",        team: "RCB", basePrice: 0.5 },
-  { id: 71,  name: "Suyash Sharma",       role: "Bowler",        team: "RCB", basePrice: 1 },
-  { id: 72,  name: "Jacob Duffy",         role: "Bowler",        team: "RCB", basePrice: 1 },
-  { id: 73,  name: "Abinandan Singh",     role: "Bowler",        team: "RCB", basePrice: 0.5 },
-
-  // ==================== KKR — Kolkata Knight Riders ====================
-  { id: 74,  name: "Ajinkya Rahane",      role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 75,  name: "Rinku Singh",         role: "Batsman",       team: "KKR", basePrice: 2 },
-  { id: 76,  name: "Angkrish Raghuvanshi",role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 77,  name: "Manish Pandey",       role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 78,  name: "Finn Allen",          role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 79,  name: "Rahul Tripathi",      role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 80,  name: "Tejasvi Singh",       role: "Batsman",       team: "KKR", basePrice: 0.5 },
-  { id: 81,  name: "Tim Seifert",         role: "Wicketkeeper",  team: "KKR", basePrice: 1 },
-  { id: 82,  name: "Rovman Powell",       role: "Batsman",       team: "KKR", basePrice: 1 },
-  { id: 83,  name: "Cameron Green",       role: "All-rounder",   team: "KKR", basePrice: 2 },
-  { id: 84,  name: "Sunil Narine",        role: "All-rounder",   team: "KKR", basePrice: 2 },
-  { id: 85,  name: "Rachin Ravindra",     role: "All-rounder",   team: "KKR", basePrice: 2 },
-  { id: 86,  name: "Ramandeep Singh",     role: "All-rounder",   team: "KKR", basePrice: 1 },
-  { id: 87,  name: "Anukul Roy",          role: "All-rounder",   team: "KKR", basePrice: 0.5 },
-  { id: 88,  name: "Sarthak Ranjan",      role: "All-rounder",   team: "KKR", basePrice: 0.5 },
-  { id: 89,  name: "Daksh Kamra",         role: "All-rounder",   team: "KKR", basePrice: 0.5 },
-  { id: 90,  name: "Matheesha Pathirana", role: "Bowler",        team: "KKR", basePrice: 2 },
-  { id: 91,  name: "Varun Chakaravarthy", role: "Bowler",        team: "KKR", basePrice: 2 },
-  { id: 92,  name: "Vaibhav Arora",       role: "Bowler",        team: "KKR", basePrice: 1 },
-  { id: 93,  name: "Umran Malik",         role: "Bowler",        team: "KKR", basePrice: 1 },
-  { id: 94,  name: "Navdeep Saini",       role: "Bowler",        team: "KKR", basePrice: 0.5 },
-  { id: 95,  name: "Kartik Tyagi",        role: "Bowler",        team: "KKR", basePrice: 0.5 },
-  { id: 96,  name: "Prashant Solanki",    role: "Bowler",        team: "KKR", basePrice: 0.5 },
-  { id: 97,  name: "Saurabh Dubey",       role: "Bowler",        team: "KKR", basePrice: 0.5 },
-  { id: 98,  name: "Blessing Muzarabani", role: "Bowler",        team: "KKR", basePrice: 1 },
-
-  // ==================== SRH — Sunrisers Hyderabad ====================
-  { id: 99,  name: "Travis Head",         role: "Batsman",       team: "SRH", basePrice: 2 },
-  { id: 100, name: "Abhishek Sharma",     role: "All-rounder",   team: "SRH", basePrice: 2 },
-  { id: 101, name: "Heinrich Klaasen",    role: "Wicketkeeper",  team: "SRH", basePrice: 2 },
-  { id: 102, name: "Ishan Kishan",        role: "Wicketkeeper",  team: "SRH", basePrice: 2 },
-  { id: 103, name: "Nitish Kumar Reddy",  role: "All-rounder",   team: "SRH", basePrice: 2 },
-  { id: 104, name: "Pat Cummins",         role: "All-rounder",   team: "SRH", basePrice: 2 },
-  { id: 105, name: "Liam Livingstone",    role: "All-rounder",   team: "SRH", basePrice: 2 },
-  { id: 106, name: "Harshal Patel",       role: "Bowler",        team: "SRH", basePrice: 1 },
-  { id: 107, name: "Kamindu Mendis",      role: "All-rounder",   team: "SRH", basePrice: 1 },
-  { id: 108, name: "Brydon Carse",        role: "All-rounder",   team: "SRH", basePrice: 1 },
-  { id: 109, name: "Aniket Verma",        role: "Batsman",       team: "SRH", basePrice: 0.5 },
-  { id: 110, name: "Smaran Ravichandran", role: "Batsman",       team: "SRH", basePrice: 0.5 },
-  { id: 111, name: "Salil Arora",         role: "Batsman",       team: "SRH", basePrice: 0.5 },
-  { id: 112, name: "Harsh Dubey",         role: "All-rounder",   team: "SRH", basePrice: 0.5 },
-  { id: 113, name: "Shivang Kumar",       role: "All-rounder",   team: "SRH", basePrice: 0.5 },
-  { id: 114, name: "David Payne",         role: "Bowler",        team: "SRH", basePrice: 1 },
-  { id: 115, name: "Shivam Mavi",         role: "Bowler",        team: "SRH", basePrice: 1 },
-  { id: 116, name: "Jaydev Unadkat",      role: "Bowler",        team: "SRH", basePrice: 1 },
-  { id: 117, name: "Zeeshan Ansari",      role: "Bowler",        team: "SRH", basePrice: 0.5 },
-  { id: 118, name: "Onkar Tarmale",       role: "Bowler",        team: "SRH", basePrice: 0.5 },
-  { id: 119, name: "Amit Kumar",          role: "Bowler",        team: "SRH", basePrice: 0.5 },
-  { id: 120, name: "Praful Hinge",        role: "Bowler",        team: "SRH", basePrice: 0.5 },
-  { id: 121, name: "Eshan Malinga",       role: "Bowler",        team: "SRH", basePrice: 0.5 },
-  { id: 122, name: "Sakib Hussain",       role: "Bowler",        team: "SRH", basePrice: 0.5 },
-
-  // ==================== DC — Delhi Capitals ====================
-  { id: 123, name: "KL Rahul",            role: "Wicketkeeper",  team: "DC",  basePrice: 2 },
-  { id: 124, name: "Axar Patel",          role: "All-rounder",   team: "DC",  basePrice: 2 },
-  { id: 125, name: "Kuldeep Yadav",       role: "Bowler",        team: "DC",  basePrice: 2 },
-  { id: 126, name: "Mitchell Starc",      role: "Bowler",        team: "DC",  basePrice: 2 },
-  { id: 127, name: "David Miller",        role: "Batsman",       team: "DC",  basePrice: 2 },
-  { id: 128, name: "Karun Nair",          role: "Batsman",       team: "DC",  basePrice: 1 },
-  { id: 129, name: "Pathum Nissanka",     role: "Batsman",       team: "DC",  basePrice: 1 },
-  { id: 130, name: "Tristan Stubbs",      role: "Batsman",       team: "DC",  basePrice: 1 },
-  { id: 131, name: "Prithvi Shaw",        role: "Batsman",       team: "DC",  basePrice: 1 },
-  { id: 132, name: "Abishek Porel",       role: "Wicketkeeper",  team: "DC",  basePrice: 1 },
-  { id: 133, name: "Sahil Parakh",        role: "Batsman",       team: "DC",  basePrice: 0.5 },
-  { id: 134, name: "Nitish Rana",         role: "All-rounder",   team: "DC",  basePrice: 1 },
-  { id: 135, name: "Sameer Rizvi",        role: "All-rounder",   team: "DC",  basePrice: 1 },
-  { id: 136, name: "Ashutosh Sharma",     role: "All-rounder",   team: "DC",  basePrice: 1 },
-  { id: 137, name: "Vipraj Nigam",        role: "All-rounder",   team: "DC",  basePrice: 0.5 },
-  { id: 138, name: "Ajay Mandal",         role: "All-rounder",   team: "DC",  basePrice: 0.5 },
-  { id: 139, name: "Tripurana Vijay",     role: "All-rounder",   team: "DC",  basePrice: 0.5 },
-  { id: 140, name: "Madhav Tiwari",       role: "All-rounder",   team: "DC",  basePrice: 0.5 },
-  { id: 141, name: "T. Natarajan",        role: "Bowler",        team: "DC",  basePrice: 1 },
-  { id: 142, name: "Mukesh Kumar",        role: "Bowler",        team: "DC",  basePrice: 1 },
-  { id: 143, name: "Dushmantha Chameera", role: "Bowler",        team: "DC",  basePrice: 1 },
-  { id: 144, name: "Auqib Nabi",          role: "Bowler",        team: "DC",  basePrice: 1 },
-  { id: 145, name: "Lungisani Ngidi",     role: "Bowler",        team: "DC",  basePrice: 1 },
-  { id: 146, name: "Kyle Jamieson",       role: "Bowler",        team: "DC",  basePrice: 1 },
-
-  // ==================== LSG — Lucknow Super Giants ====================
-  { id: 147, name: "Rishabh Pant",        role: "Wicketkeeper",  team: "LSG", basePrice: 2 },
-  { id: 148, name: "Mohammad Shami",      role: "Bowler",        team: "LSG", basePrice: 2 },
-  { id: 149, name: "Nicholas Pooran",     role: "Wicketkeeper",  team: "LSG", basePrice: 2 },
-  { id: 150, name: "Aiden Markram",       role: "All-rounder",   team: "LSG", basePrice: 2 },
-  { id: 151, name: "Mitchell Marsh",      role: "All-rounder",   team: "LSG", basePrice: 2 },
-  { id: 152, name: "Anrich Nortje",       role: "Bowler",        team: "LSG", basePrice: 2 },
-  { id: 153, name: "Mayank Yadav",        role: "Bowler",        team: "LSG", basePrice: 2 },
-  { id: 154, name: "Wanindu Hasaranga",   role: "All-rounder",   team: "LSG", basePrice: 2 },
-  { id: 155, name: "Ayush Badoni",        role: "All-rounder",   team: "LSG", basePrice: 1 },
-  { id: 156, name: "Abdul Samad",         role: "All-rounder",   team: "LSG", basePrice: 1 },
-  { id: 157, name: "Shahbaz Ahamad",      role: "All-rounder",   team: "LSG", basePrice: 1 },
-  { id: 158, name: "Arshin Kulkarni",     role: "All-rounder",   team: "LSG", basePrice: 0.5 },
-  { id: 159, name: "Himmat Singh",        role: "Batsman",       team: "LSG", basePrice: 0.5 },
-  { id: 160, name: "Matthew Breetzke",    role: "Batsman",       team: "LSG", basePrice: 1 },
-  { id: 161, name: "Josh Inglis",         role: "Wicketkeeper",  team: "LSG", basePrice: 1 },
-  { id: 162, name: "Mukul Choudhary",     role: "Batsman",       team: "LSG", basePrice: 0.5 },
-  { id: 163, name: "Akshat Raghuwanshi", role: "Batsman",       team: "LSG", basePrice: 0.5 },
-  { id: 164, name: "Avesh Khan",          role: "Bowler",        team: "LSG", basePrice: 1 },
-  { id: 165, name: "Arjun Tendulkar",     role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 166, name: "Naman Tiwari",        role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 167, name: "M. Siddharth",        role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 168, name: "Digvesh Singh",       role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 169, name: "Akash Singh",         role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 170, name: "Prince Yadav",        role: "Bowler",        team: "LSG", basePrice: 0.5 },
-  { id: 171, name: "Mohsin Khan",         role: "Bowler",        team: "LSG", basePrice: 1 },
-
-  // ==================== RR — Rajasthan Royals ====================
-  { id: 172, name: "Yashasvi Jaiswal",    role: "Batsman",       team: "RR",  basePrice: 2 },
-  { id: 173, name: "Riyan Parag",         role: "All-rounder",   team: "RR",  basePrice: 2 },
-  { id: 174, name: "Ravindra Jadeja",     role: "All-rounder",   team: "RR",  basePrice: 2 },
-  { id: 175, name: "Jofra Archer",        role: "Bowler",        team: "RR",  basePrice: 2 },
-  { id: 176, name: "Ravi Bishnoi",        role: "Bowler",        team: "RR",  basePrice: 2 },
-  { id: 177, name: "Shimron Hetmyer",     role: "Batsman",       team: "RR",  basePrice: 1 },
-  { id: 178, name: "Dhruv Jurel",         role: "Wicketkeeper",  team: "RR",  basePrice: 1 },
-  { id: 179, name: "Vaibhav Suryavanshi", role: "Batsman",       team: "RR",  basePrice: 1 },
-  { id: 180, name: "Shubham Dubey",       role: "Batsman",       team: "RR",  basePrice: 1 },
-  { id: 181, name: "Yudhvir Singh Charak",role: "All-rounder",   team: "RR",  basePrice: 1 },
-  { id: 182, name: "Dasun Shanaka",       role: "All-rounder",   team: "RR",  basePrice: 1 },
-  { id: 183, name: "Donovan Ferreira",    role: "Batsman",       team: "RR",  basePrice: 1 },
-  { id: 184, name: "Lhuan-Dre Pretorious",role: "Batsman",       team: "RR",  basePrice: 1 },
-  { id: 185, name: "Ravi Singh",          role: "Batsman",       team: "RR",  basePrice: 0.5 },
-  { id: 186, name: "Aman Rao Perala",     role: "Batsman",       team: "RR",  basePrice: 0.5 },
-  { id: 187, name: "Tushar Deshpande",    role: "Bowler",        team: "RR",  basePrice: 1 },
-  { id: 188, name: "Kwena Maphaka",       role: "Bowler",        team: "RR",  basePrice: 1 },
-  { id: 189, name: "Adam Milne",          role: "Bowler",        team: "RR",  basePrice: 1 },
-  { id: 190, name: "Sandeep Sharma",      role: "Bowler",        team: "RR",  basePrice: 1 },
-  { id: 191, name: "Kuldeep Sen",         role: "Bowler",        team: "RR",  basePrice: 0.5 },
-  { id: 192, name: "Sushant Mishra",      role: "Bowler",        team: "RR",  basePrice: 0.5 },
-  { id: 193, name: "Yash Raj Punja",      role: "Bowler",        team: "RR",  basePrice: 0.5 },
-  { id: 194, name: "Vignesh Puthur",      role: "Bowler",        team: "RR",  basePrice: 0.5 },
-  { id: 195, name: "Brijesh Sharma",      role: "Bowler",        team: "RR",  basePrice: 0.5 },
-  { id: 196, name: "Nandre Burger",       role: "Bowler",        team: "RR",  basePrice: 1 },
-
-  // ==================== GT — Gujarat Titans ====================
-  { id: 197, name: "Shubman Gill",        role: "Batsman",       team: "GT",  basePrice: 2 },
-  { id: 198, name: "Jos Buttler",         role: "Wicketkeeper",  team: "GT",  basePrice: 2 },
-  { id: 199, name: "Rashid Khan",         role: "Bowler",        team: "GT",  basePrice: 2 },
-  { id: 200, name: "Mohammed Siraj",      role: "Bowler",        team: "GT",  basePrice: 2 },
-  { id: 201, name: "Kagiso Rabada",       role: "Bowler",        team: "GT",  basePrice: 2 },
-  { id: 202, name: "Sai Sudharsan",       role: "Batsman",       team: "GT",  basePrice: 2 },
-  { id: 203, name: "Washington Sundar",   role: "All-rounder",   team: "GT",  basePrice: 2 },
-  { id: 204, name: "Rahul Tewatia",       role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 205, name: "Shahrukh Khan",       role: "Batsman",       team: "GT",  basePrice: 1 },
-  { id: 206, name: "Jayant Yadav",        role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 207, name: "Jason Holder",        role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 208, name: "Nishant Sindhu",      role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 209, name: "Sai Kishore",         role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 210, name: "Kumar Kushagra",      role: "Wicketkeeper",  team: "GT",  basePrice: 0.5 },
-  { id: 211, name: "Anuj Rawat",          role: "Wicketkeeper",  team: "GT",  basePrice: 0.5 },
-  { id: 212, name: "Tom Banton",          role: "Batsman",       team: "GT",  basePrice: 1 },
-  { id: 213, name: "Glenn Phillips",      role: "All-rounder",   team: "GT",  basePrice: 1 },
-  { id: 214, name: "Mohd. Arshad Khan",   role: "All-rounder",   team: "GT",  basePrice: 0.5 },
-  { id: 215, name: "Prasidh Krishna",     role: "Bowler",        team: "GT",  basePrice: 1 },
-  { id: 216, name: "Manav Suthar",        role: "Bowler",        team: "GT",  basePrice: 0.5 },
-  { id: 217, name: "Gurnoor Singh Brar",  role: "Bowler",        team: "GT",  basePrice: 1 },
-  { id: 218, name: "Ishant Sharma",       role: "Bowler",        team: "GT",  basePrice: 1 },
-  { id: 219, name: "Luke Wood",           role: "Bowler",        team: "GT",  basePrice: 1 },
-  { id: 220, name: "Kulwant Khejroliya",  role: "Bowler",        team: "GT",  basePrice: 0.5 },
-  { id: 221, name: "Ashok Sharma",        role: "Bowler",        team: "GT",  basePrice: 0.5 },
-
-  // ==================== PBKS — Punjab Kings ====================
-  { id: 222, name: "Shreyas Iyer",        role: "Batsman",       team: "PBKS", basePrice: 2 },
-  { id: 223, name: "Arshdeep Singh",      role: "Bowler",        team: "PBKS", basePrice: 2 },
-  { id: 224, name: "Yuzvendra Chahal",    role: "Bowler",        team: "PBKS", basePrice: 2 },
-  { id: 225, name: "Prabhsimran Singh",   role: "Wicketkeeper",  team: "PBKS", basePrice: 2 },
-  { id: 226, name: "Shashank Singh",      role: "Batsman",       team: "PBKS", basePrice: 2 },
-  { id: 227, name: "Marcus Stoinis",      role: "All-rounder",   team: "PBKS", basePrice: 2 },
-  { id: 228, name: "Marco Jansen",        role: "All-rounder",   team: "PBKS", basePrice: 1 },
-  { id: 229, name: "Priyansh Arya",       role: "Batsman",       team: "PBKS", basePrice: 1 },
-  { id: 230, name: "Nehal Wadhera",       role: "Batsman",       team: "PBKS", basePrice: 1 },
-  { id: 231, name: "Vishnu Vinod",        role: "Wicketkeeper",  team: "PBKS", basePrice: 1 },
-  { id: 232, name: "Cooper Connolly",     role: "All-rounder",   team: "PBKS", basePrice: 1 },
-  { id: 233, name: "Azmatullah Omarzai",  role: "All-rounder",   team: "PBKS", basePrice: 1 },
-  { id: 234, name: "Musheer Khan",        role: "All-rounder",   team: "PBKS", basePrice: 1 },
-  { id: 235, name: "Harprett Brar",       role: "All-rounder",   team: "PBKS", basePrice: 1 },
-  { id: 236, name: "Mitch Owen",          role: "All-rounder",   team: "PBKS", basePrice: 0.5 },
-  { id: 237, name: "Suryansh Shedge",     role: "All-rounder",   team: "PBKS", basePrice: 0.5 },
-  { id: 238, name: "Ben Dwarshuis",       role: "All-rounder",   team: "PBKS", basePrice: 0.5 },
-  { id: 239, name: "Harnoor Pannu",       role: "Batsman",       team: "PBKS", basePrice: 0.5 },
-  { id: 240, name: "Pyla Avinash",        role: "Batsman",       team: "PBKS", basePrice: 0.5 },
-  { id: 241, name: "Vyshak Vijaykumar",   role: "Bowler",        team: "PBKS", basePrice: 1 },
-  { id: 242, name: "Lockie Ferguson",     role: "Bowler",        team: "PBKS", basePrice: 1 },
-  { id: 243, name: "Xavier Bartlett",     role: "Bowler",        team: "PBKS", basePrice: 1 },
-  { id: 244, name: "Yash Thakur",         role: "Bowler",        team: "PBKS", basePrice: 0.5 },
-  { id: 245, name: "Pravin Dubey",        role: "Bowler",        team: "PBKS", basePrice: 0.5 },
-  { id: 246, name: "Vishal Nishad",       role: "Bowler",        team: "PBKS", basePrice: 0.5 },
-
-];
+const BREVO_API_KEY = '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';
+const BREVO_SENDER_EMAIL = 'auctionx.noreply@gmail.com';
+const BREVO_SENDER_NAME = 'AuctionX';
 
 // ============================================
-// SUMMARY — 246 players across 10 teams:
-// CSK: 25 | MI: 25 | RCB: 23 | KKR: 25 | SRH: 24
-// DC: 24  | LSG: 25 | RR: 25 | GT: 25  | PBKS: 25
+// OTP HELPERS
 // ============================================
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendOTPEmail(toEmail, otp) {
+  var response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'api-key': BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
+      to: [{ email: toEmail }],
+      subject: 'Your AuctionX verification code',
+      htmlContent: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080810;color:#ffffff;padding:32px;border-radius:16px;border:1px solid rgba(233,69,96,0.2)">
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="background:linear-gradient(135deg,#e94560,#c0392b);width:56px;height:56px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:white;letter-spacing:1px">AX</div>
+            <h1 style="font-size:1.6rem;letter-spacing:3px;margin:12px 0 4px;color:#ffffff">AUCTIONX</h1>
+            <p style="color:#606080;font-size:0.75rem;letter-spacing:2px;margin:0">OUTBID. OUTSMART. OUTPLAY.</p>
+          </div>
+          <p style="color:#a0a0b8;line-height:1.6;margin-bottom:8px">Your verification code is:</p>
+          <div style="text-align:center;margin:24px 0">
+            <span style="font-size:2.5rem;font-weight:700;letter-spacing:12px;color:#e94560;background:rgba(233,69,96,0.08);padding:16px 24px;border-radius:12px;border:1px solid rgba(233,69,96,0.2)">${otp}</span>
+          </div>
+          <p style="color:#a0a0b8;line-height:1.6">This code expires in <strong style="color:#ffffff">10 minutes</strong>.</p>
+          <p style="color:#a0a0b8;line-height:1.6">If you didn't create an AuctionX account, ignore this email.</p>
+          <p style="color:#606080;font-size:0.82rem;margin-top:24px">— The AuctionX Team</p>
+        </div>
+      `
+    })
+  });
+  return response.ok;
+}
+
+async function saveOTPToFirestore(uid, otp) {
+  var userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, {
+    emailOTP: otp,
+    emailOTPExpiry: Date.now() + 10 * 60 * 1000, // 10 minutes
+    emailVerified: false
+  });
+}
+
+async function verifyOTPFromFirestore(uid, enteredOTP) {
+  var userRef = doc(db, 'users', uid);
+  var snap = await getDoc(userRef);
+  if (!snap.exists()) return { success: false, message: 'User not found.' };
+  var data = snap.data();
+  if (!data.emailOTP) return { success: false, message: 'No OTP found. Please resend.' };
+  if (Date.now() > data.emailOTPExpiry) return { success: false, message: 'Code expired. Please resend.' };
+  if (data.emailOTP !== enteredOTP) return { success: false, message: 'Incorrect code. Try again.' };
+  await updateDoc(userRef, {
+    emailOTP: null,
+    emailOTPExpiry: null,
+    emailVerified: true
+  });
+  return { success: true };
+}
+
+// ============================================
+// OTP SCREEN — AUTO FOCUS INPUTS
+// ============================================
+function initOTPInputs() {
+  var inputs = document.querySelectorAll('.otp-input');
+  inputs.forEach(function(input, index) {
+    input.addEventListener('input', function() {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value.length === 1) {
+        input.classList.add('filled');
+        if (index < inputs.length - 1) inputs[index + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && input.value === '' && index > 0) {
+        inputs[index - 1].focus();
+        inputs[index - 1].classList.remove('filled');
+      }
+    });
+    input.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      paste.split('').forEach(function(char, i) {
+        if (inputs[index + i]) {
+          inputs[index + i].value = char;
+          inputs[index + i].classList.add('filled');
+        }
+      });
+      var nextEmpty = index + paste.length;
+      if (inputs[nextEmpty]) inputs[nextEmpty].focus();
+    });
+  });
+}
+initOTPInputs();
+
+function getOTPValue() {
+  var inputs = document.querySelectorAll('.otp-input');
+  return Array.from(inputs).map(function(i) { return i.value; }).join('');
+}
+
+function clearOTPInputs() {
+  document.querySelectorAll('.otp-input').forEach(function(input) {
+    input.value = '';
+    input.classList.remove('filled');
+  });
+}
+
+function showOTPStatus(message, type) {
+  var el = document.getElementById('otp-status');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'verify-status ' + type;
+  el.style.display = 'block';
+}
+
+function hideOTPStatus() {
+  var el = document.getElementById('otp-status');
+  if (!el) return;
+  el.style.display = 'none';
+  el.className = 'verify-status';
+  el.textContent = '';
+}
+
+// ============================================
+// OTP SCREEN — SEND OTP (called after register)
+// ============================================
+async function sendOTPToUser(user) {
+  var otp = generateOTP();
+  try {
+    await setDoc(doc(db, 'users', user.uid), {
+      email: user.email,
+      uid: user.uid,
+      emailOTP: otp,
+      emailOTPExpiry: Date.now() + 10 * 60 * 1000,
+      emailVerified: false,
+      createdAt: new Date()
+    }, { merge: true });
+    var sent = await sendOTPEmail(user.email, otp);
+    if (!sent) throw new Error('Email sending failed');
+    var chipEl = document.getElementById('otp-email-display');
+    if (chipEl) chipEl.textContent = user.email;
+    showScreen('screen-otp');
+  } catch(err) {
+    console.error('OTP send error:', err);
+  }
+}
+
+// ============================================
+// OTP SCREEN — VERIFY BUTTON
+// ============================================
+document.getElementById('btn-verify-otp').addEventListener('click', async function() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var otp = getOTPValue();
+  if (otp.length < 6) { showOTPStatus('Please enter all 6 digits.', 'error'); return; }
+  var btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true;
+  btn.textContent = 'VERIFYING...';
+  var result = await verifyOTPFromFirestore(user.uid, otp);
+  if (result.success) {
+    showOTPStatus('Verified! Taking you in...', 'success');
+    setTimeout(function() {
+      var userRef = doc(db, 'users', user.uid);
+      getDoc(userRef).then(function(snapshot) {
+        if (snapshot.exists() && snapshot.data().username) {
+          if (document.getElementById('nav-username'))
+            document.getElementById('nav-username').textContent = snapshot.data().username;
+          if (document.getElementById('hero-username'))
+            document.getElementById('hero-username').textContent = snapshot.data().username;
+          showScreen('screen-lobby');
+          loadDashboard(user);
+        } else {
+          showScreen('screen-username');
+        }
+      });
+    }, 1000);
+  } else {
+    showOTPStatus(result.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> VERIFY CODE';
+    clearOTPInputs();
+    document.getElementById('otp-1').focus();
+  }
+});
+
+// ============================================
+// OTP SCREEN — RESEND BUTTON
+// ============================================
+document.getElementById('btn-resend-otp').addEventListener('click', async function() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var btn = document.getElementById('btn-resend-otp');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  hideOTPStatus();
+  clearOTPInputs();
+  await sendOTPToUser(user);
+  showOTPStatus('New code sent! Check your inbox.', 'success');
+  setTimeout(function() {
+    btn.disabled = false;
+    btn.style.opacity = '';
+    hideOTPStatus();
+  }, 60000);
+});
+
+// ============================================
+// OTP SCREEN — LOGOUT
+// ============================================
+document.getElementById('btn-otp-logout').addEventListener('click', function() {
+  signOut(auth).catch(function(error) { console.error(error); });
+});
+
+// ============================================
+// ANALYTICS HELPER
+// ============================================
+function track(eventName, params = {}) {
+  try {
+    logEvent(analytics, eventName, params);
+  } catch(e) {
+    // silently fail — never break the app for analytics
+  }
+}
+
+// ============================================
+// PLAYER DATA — loaded dynamically per event
+// ============================================
+let IPL_PLAYERS = [];
+
+async function loadPlayersForEvent(eventId) {
+  if (eventId === 'ipl2026') {
+    if (IPL_PLAYERS.length > 0) return; // already loaded, skip
+    const module = await import('./data/ipl2026.js');
+    IPL_PLAYERS = module.IPL_PLAYERS;
+  }
+  // future sports:
+  // else if (eventId === 'fifa2026') {
+  //   const module = await import('./data/fifa2026.js');
+  //   IPL_PLAYERS = module.IPL_PLAYERS;
+  // }
+}
 
 // ============================================
 // SCREEN SWITCHER
@@ -333,14 +303,14 @@ function showScreen(screenId) {
     screen.classList.remove('active');
   });
   document.getElementById(screenId).classList.add('active');
-  
+  track('screen_view', { screen_name: screenId });
+
   if (screenId === 'screen-auction') {
     document.body.classList.add('auction-active');
   } else {
     document.body.classList.remove('auction-active');
   }
 }
-
 // ============================================
 // STADIUM FLOODLIGHT EFFECT
 // ============================================
@@ -423,21 +393,21 @@ initSpotlight();
 // ============================================
 onAuthStateChanged(auth, function(user) {
   if (user) {
-    // If email is not verified, show the verify screen
-    if (!user.emailVerified) {
-      var chipEl = document.getElementById('verify-email-display');
-      if (chipEl) chipEl.textContent = user.email;
-        showScreen('screen-verify');
-      return;
-    }
     var userRef = doc(db, 'users', user.uid);
     getDoc(userRef).then(function(snapshot) {
-      if (snapshot.exists() && snapshot.data().username) {
-        var username = snapshot.data().username;
+      if (!snapshot.exists() || !snapshot.data().emailVerified) {
+        // Not verified — show OTP screen
+        var chipEl = document.getElementById('otp-email-display');
+        if (chipEl) chipEl.textContent = user.email;
+        showScreen('screen-otp');
+        return;
+      }
+      var data = snapshot.data();
+      if (data.username) {
         if (document.getElementById('nav-username'))
-          document.getElementById('nav-username').textContent = username;
+          document.getElementById('nav-username').textContent = data.username;
         if (document.getElementById('hero-username'))
-          document.getElementById('hero-username').textContent = username;
+          document.getElementById('hero-username').textContent = data.username;
         showScreen('screen-lobby');
         loadDashboard(user);
       } else {
@@ -462,10 +432,14 @@ document.getElementById('btn-login').addEventListener('click', function() {
     return;
   }
   signInWithEmailAndPassword(auth, email, password)
-    .catch(function(error) {
-      errEl.textContent = error.message;
-      errEl.style.display = 'block';
-    });
+  .then(function() {
+    track('login', { method: 'email' });
+  })
+  .catch(function(error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    track('login_error', { error: error.code });
+  });
 });
 
 // ============================================
@@ -482,8 +456,7 @@ document.getElementById('btn-register').addEventListener('click', function() {
   }
   createUserWithEmailAndPassword(auth, email, password)
     .then(function(userCredential) {
-      sendEmailVerification(userCredential.user, actionCodeSettings)
-        .catch(function(err) { console.error('Verification send error:', err); });
+      sendOTPToUser(userCredential.user);
     })
     .catch(function(error) {
       errEl.textContent = error.message;
@@ -497,103 +470,6 @@ document.getElementById('btn-register').addEventListener('click', function() {
 document.getElementById('btn-logout').addEventListener('click', function() {
   signOut(auth).catch(function(error) { console.error(error); });
 });
-
-// ============================================
-// VERIFY EMAIL SCREEN — Resend button
-// ============================================
-document.getElementById('btn-resend-verification').addEventListener('click', function() {
-  var user = auth.currentUser;
-  if (!user) return;
-  var btn = document.getElementById('btn-resend-verification');
-  var statusEl = document.getElementById('verify-status');
-
-  sendEmailVerification(user)
-    .then(function() {
-      showVerifyStatus('Email sent! Check your inbox and spam folder.', 'success');
-      btn.disabled = true;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> SENT!';
-      btn.style.opacity = '0.6';
-      setTimeout(function() {
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> RESEND EMAIL';
-        btn.style.opacity = '';
-        hideVerifyStatus();
-      }, 60000);
-    })
-    .catch(function(error) {
-      showVerifyStatus('Error: ' + error.message, 'error');
-    });
-});
-
-// ============================================
-// VERIFY EMAIL SCREEN — I've verified button
-// ============================================
-document.getElementById('btn-check-verified').addEventListener('click', function() {
-  var user = auth.currentUser;
-  if (!user) return;
-  var btn = document.getElementById('btn-check-verified');
-
-  // Lock the button width before changing content
-  btn.style.width = btn.offsetWidth + 'px';
-  btn.disabled = true;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> CHECKING...';
-
-  user.reload().then(function() {
-    if (auth.currentUser.emailVerified) {
-      showVerifyStatus('Verified! Taking you in...', 'success');
-      var userRef = doc(db, 'users', auth.currentUser.uid);
-      getDoc(userRef).then(function(snapshot) {
-        if (snapshot.exists() && snapshot.data().username) {
-          var username = snapshot.data().username;
-          if (document.getElementById('nav-username'))
-            document.getElementById('nav-username').textContent = username;
-          if (document.getElementById('hero-username'))
-            document.getElementById('hero-username').textContent = username;
-          showScreen('screen-lobby');
-          loadDashboard(auth.currentUser);
-        } else {
-          showScreen('screen-username');
-        }
-      });
-    } else {
-      showVerifyStatus('Not verified yet. Please click the link in your email.', 'error');
-      btn.disabled = false;
-      btn.style.width = '';  // Release the lock
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> I\'VE VERIFIED MY EMAIL';
-    }
-  }).catch(function(error) {
-    showVerifyStatus('Error checking status: ' + error.message, 'error');
-    btn.disabled = false;
-    btn.style.width = '';  // Release the lock
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> I\'VE VERIFIED MY EMAIL';
-  });
-});
-
-// ============================================
-// VERIFY EMAIL SCREEN — Logout link
-// ============================================
-document.getElementById('btn-verify-logout').addEventListener('click', function() {
-  signOut(auth).catch(function(error) { console.error(error); });
-});
-
-// ============================================
-// VERIFY SCREEN HELPERS
-// ============================================
-function showVerifyStatus(message, type) {
-  var el = document.getElementById('verify-status');
-  if (!el) return;
-  el.textContent = message;
-  el.className = 'verify-status ' + type;
-  el.style.display = 'block';
-}
-
-function hideVerifyStatus() {
-  var el = document.getElementById('verify-status');
-  if (!el) return;
-  el.className = 'verify-status';
-  el.textContent = '';
-  el.style.display = 'none';
-}
 
 // ============================================
 // SAVE USERNAME
@@ -614,6 +490,7 @@ document.getElementById('btn-save-username').addEventListener('click', async fun
     var userRef = doc(db, 'users', user.uid);
     await setDoc(userRef, { username: username, email: user.email, uid: user.uid, createdAt: new Date() });
     await setDoc(usernamesRef, { uid: user.uid });
+    track('username_set');
     showScreen('screen-lobby');
     loadDashboard(user);
   } catch (error) {
@@ -721,10 +598,12 @@ document.getElementById('btn-create-room').addEventListener('click', async funct
       hostId: user.uid,
       status: 'waiting',
       type: selectedRoomType,
+      eventId: 'ipl2026',
       maxPlayers: maxPlayers,
       createdAt: new Date(),
       players: { [user.uid]: { email: user.email, joinedAt: new Date() } }
     });
+    track('room_created', { type: selectedRoomType });
     document.getElementById('room-code-display').textContent = roomCode;
     var lockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
     var globeSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
@@ -764,6 +643,7 @@ document.getElementById('btn-join-room').addEventListener('click', async functio
     var maxAllowed = roomData.maxPlayers || 10;
     if (currentPlayers >= maxAllowed) { alert('This room is full! (' + maxAllowed + '/' + maxAllowed + ' players)'); return; }
     await updateDoc(roomRef, { ['players.' + user.uid]: { email: user.email, joinedAt: new Date() } });
+    track('room_joined', { type: roomData.type });
     currentRoomCode = code;
     isHost = false;
     document.getElementById('room-code-display').textContent = code;
@@ -943,6 +823,7 @@ document.getElementById('btn-back-lobby').addEventListener('click', function() {
 document.getElementById('btn-confirm-start').addEventListener('click', async function() {
   if (!currentRoomCode) return;
   try {
+    await loadPlayersForEvent('ipl2026');
     var orderedPlayers = getOrderedPlayers(setupOrder);
     await updateDoc(doc(db, 'rooms', currentRoomCode), {
       settings: {
@@ -1019,13 +900,14 @@ function getOrderedPlayers(order) {
 // START AUCTION NOW
 // ============================================
 async function startAuctionNow() {
+  await loadPlayersForEvent('ipl2026');
   if (!currentRoomCode) return;
   try {
     var roomSnap = await getDoc(doc(db, 'rooms', currentRoomCode));
     var data = roomSnap.data();
     var settings = data.settings || {};
-    var orderedPlayers = settings.playerOrder
-      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
+    var orderedPlayers = (settings.playerOrder && settings.playerOrder.length > 0)
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === Number(id); }); }).filter(Boolean)
       : IPL_PLAYERS;
     var now = new Date();
     await updateDoc(doc(db, 'rooms', currentRoomCode), {
@@ -1041,6 +923,7 @@ async function startAuctionNow() {
       lastResultBuyer: null,
       lastResultAmount: null
     });
+    track('auction_started', { room: currentRoomCode });
     myBudget = settings.budget || 100;
     document.getElementById('my-budget').textContent = '₹' + myBudget + ' Cr';
     document.getElementById('auction-room-code').textContent = currentRoomCode;
@@ -1065,8 +948,8 @@ async function handleTimerEnd() {
     var settings = data.settings || {};
     var idx = data.currentPlayerIndex || 0;
     var soldPlayers = data.soldPlayers || [];
-    var orderedPlayers = settings.playerOrder
-      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
+    var orderedPlayers = (settings.playerOrder && settings.playerOrder.length > 0)
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === Number(id); }); }).filter(Boolean)
       : IPL_PLAYERS;
     var player = orderedPlayers[idx];
     if (!player) return;
@@ -1096,6 +979,7 @@ async function handleTimerEnd() {
     var nextIndex = idx + 1;
     if (nextIndex >= orderedPlayers.length) {
       updatePayload.status = 'finished';
+      track('auction_completed', { room: currentRoomCode, players_sold: soldPlayers.length });
       updatePayload.soldPlayers = soldPlayers;
       await updateDoc(roomRef, updatePayload);
       setTimeout(function() { showResults(currentRoomCode); }, 2500);
@@ -1156,9 +1040,13 @@ var lastResultKey = null;
 
 function listenToAuction(roomCode) {
   var roomRef = doc(db, 'rooms', roomCode);
-  onSnapshot(roomRef, function(snapshot) {
+  onSnapshot(roomRef, async function(snapshot) {
     if (!snapshot.exists()) return;
     var data = snapshot.data();
+
+    if (data.status === 'auction' && IPL_PLAYERS.length === 0) {
+      await loadPlayersForEvent(data.eventId || 'ipl2026');
+    }
 
     if (data.status === 'finished') { showResults(roomCode); return; }
     if (data.status !== 'auction') return;
@@ -1168,8 +1056,8 @@ function listenToAuction(roomCode) {
 
     var idx = data.currentPlayerIndex || 0;
     var settings = data.settings || {};
-    var orderedPlayers = settings.playerOrder
-      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === id; }); }).filter(Boolean)
+    var orderedPlayers = (settings.playerOrder && settings.playerOrder.length > 0)
+      ? settings.playerOrder.map(function(id) { return IPL_PLAYERS.find(function(p) { return p.id === Number(id); }); }).filter(Boolean)
       : IPL_PLAYERS;
 
     var player = orderedPlayers[idx];
@@ -1375,6 +1263,7 @@ async function placeBid(amount) {
       currentBidderEmail: displayName,
       timerStartedAt: now.getTime(),
     });
+    track('bid_placed', { amount: newBid, increment: amount });
   } catch (error) {
     console.error('Bid error:', error);
   }
