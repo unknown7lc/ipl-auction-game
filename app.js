@@ -1218,6 +1218,7 @@ function listenToAuction(roomCode) {
     if (totalEl) totalEl.textContent = orderedPlayers.length;
 
     var bid = data.currentBid || 0;
+    currentBidAmount = bid;
     document.getElementById('current-bid-amount').textContent = '₹' + bid + ' Cr';
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
@@ -1368,9 +1369,6 @@ function startTimer(seconds, totalSeconds) {
 }
 
 // ============================================
-// UPDATE BUDGET BAR
-// ============================================
-// ============================================
 // SQUAD COMPOSITION RULES
 // ============================================
 function getCompositionRules(squadSize) {
@@ -1460,7 +1458,7 @@ function updateBidButtons(data) {
   var roleCounts = getMyRoleCounts(soldPlayers, user.uid);
 
   // Check if squad is already full
-  var infoBox = document.getElementById('bid-composition-info');
+  //var infoBox = document.getElementById('bid-composition-info');
   var bidBtns = [
     document.getElementById('btn-bid-5'),
     document.getElementById('btn-bid-10'),
@@ -1533,9 +1531,17 @@ async function placeBid(amount) {
   }
 }
 
-document.getElementById('btn-bid-5').addEventListener('click', function() { placeBid(5); });
-document.getElementById('btn-bid-10').addEventListener('click', function() { placeBid(10); });
-document.getElementById('btn-bid-20').addEventListener('click', function() { placeBid(20); });
+var currentBidAmount = 0;
+
+document.getElementById('btn-bid-5').addEventListener('click', function() {
+  placeBid(getIncrements(currentBidAmount)[0]);
+});
+document.getElementById('btn-bid-10').addEventListener('click', function() {
+  placeBid(getIncrements(currentBidAmount)[1]);
+});
+document.getElementById('btn-bid-20').addEventListener('click', function() {
+  placeBid(getIncrements(currentBidAmount)[2]);
+});
 
 // ============================================
 // UPDATE SOLD LIST (ticker)
