@@ -1,2 +1,2 @@
-# ipl-auction-game
+# AuctionX
 IPL Multiplayer Auction Game

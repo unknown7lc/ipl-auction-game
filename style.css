@@ -1297,7 +1297,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 .auc-player-row {
   background:rgba(255,255,255,0.02);
   border:1px solid var(--border2);
-  border-radius:10px; padding:12px;
+  border-radius:10px;
   transition:border-color var(--ease); width:100%;
 }
 
@@ -1566,9 +1566,101 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 .btn-unsold:hover { background:#dc3545!important; color:white!important; box-shadow:0 8px 20px rgba(220,53,69,0.4)!important; transform:translateY(-2px)!important; }
 
+/* ===========================
+   PLAYERS PANEL DROPDOWN
+=============================*/
+.auc-player-row-header {
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background var(--ease);
+  border-radius: 10px;
+}
+
+.auc-player-row-header:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.auc-dp-icon {
+  color: var(--text3);
+  padding-left: 16px;
+  margin-right: -4px; /* Keeps it shifted slightly to the right */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auc-dp-icon svg {
+  transform-origin: center; /* Forces on centre rotation */
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+}
+
+.auc-player-row.open .auc-dp-icon svg {
+  transform: rotate(180deg);
+  color: var(--red);
+}
+
+.auc-dp-content {
+  display: none;
+  padding: 12px;
+  margin: 0 12px 12px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.auc-player-row.open .auc-dp-content {
+  display: block; 
+  animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auc-dp-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03); /* glass background */
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-b);
+  font-size: 0.85rem;
+  color: var(--text2);
+  transition: all 0.2s ease;
+}
+
+.auc-dp-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(233, 69, 96, 0.4); /* red glow border */
+  transform: translateX(4px); /* Slides the card right slightly when hovered */
+}
+
+.auc-dp-item:last-child {
+  margin-bottom: 0;
+}
+
+.auc-dp-price {
+  font-family: var(--font-d);
+  color: var(--red);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.auc-dp-empty {
+  font-size: 0.75rem;
+  color: var(--text3);
+  font-style: italic;
+  text-align: center;
+}
 /* ==============================
    VERIFY EMAIL SCREEN
-============================== */
+===============================*/
 #screen-verify {
   padding: 20px;
 }
@@ -1704,7 +1796,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 /* ==============================
    LOGIN SCREEN COMPACT
-============================== */
+===============================*/
 #screen-login .login-card {
   padding: 28px 32px 24px;
 }
@@ -1741,7 +1833,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 /* ==============================
    OTP SCREEN
-============================== */
+===============================*/
 #screen-otp .login-card {
   padding: 24px 28px 20px;
   max-width: 420px;
@@ -1802,7 +1894,7 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 /* ==============================
    USERNAME SCREEN Button Fix
-============================== */
+===============================*/
 #screen-username .login-card .btn-primary {
   padding: 13px 20px;
   font-size: 0.95rem;
@@ -1811,7 +1903,6 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
 
 /* ==============================
    PUBLIC ROOMS
-============================== */
 .public-room-card {
   display: flex;
   align-items: center;
@@ -1911,7 +2002,6 @@ body.unverified .dashboard-content {
 
 /* ==============================
    BID COMPOSITION INFO BOX
-============================== */
 .bid-composition-info {
   width: 100%;
   padding: 10px 14px;
