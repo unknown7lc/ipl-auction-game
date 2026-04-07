@@ -1005,9 +1005,6 @@ async function startAuctionNow() {
   await loadPlayersForEvent('ipl2026');
   if (!currentRoomCode) return;
   try {
-    var soldList = document.getElementById('sold-list');
-    if (soldList) soldList.innerHTML = '';
-    
     var roomSnap = await getDoc(doc(db, 'rooms', currentRoomCode));
     var data = roomSnap.data();
     var settings = data.settings || {};
@@ -1026,8 +1023,7 @@ async function startAuctionNow() {
       lastResult: null,
       lastResultPlayer: null,
       lastResultBuyer: null,
-      lastResultAmount: null,
-      soldPlayers: []
+      lastResultAmount: null
     });
     track('auction_started', { room: currentRoomCode });
     myBudget = settings.budget || 100;
@@ -1153,6 +1149,41 @@ function updateBudgetBar(remaining, total) {
 }
 
 // ============================================
+// PLAYER AVATAR — live URL photo or colored initials
+// ============================================
+function updatePlayerAvatar(player) {
+  var avatarEl = document.getElementById('player-avatar-container');
+  if (!avatarEl) return;
+ 
+  var roleColors = {
+    'Batsman':      { bg: 'rgba(52,152,219,0.15)',  border: 'rgba(52,152,219,0.5)',  color: '#5dade2' },
+    'Bowler':       { bg: 'rgba(231,76,60,0.15)',   border: 'rgba(231,76,60,0.5)',   color: '#e74c3c' },
+    'All-rounder':  { bg: 'rgba(46,204,113,0.15)',  border: 'rgba(46,204,113,0.5)',  color: '#2ecc71' },
+    'Wicketkeeper': { bg: 'rgba(241,196,15,0.15)',  border: 'rgba(241,196,15,0.5)',  color: '#f1c40f' }
+  };
+  var rc = roleColors[player.role] || roleColors['Batsman'];
+  var initials = player.name.split(' ').map(function(w) { return w[0]; }).slice(0, 2).join('');
+ 
+  avatarEl.style.background = rc.bg;
+  avatarEl.style.borderColor = rc.border;
+ 
+  if (player.photo) {
+    var img = document.createElement('img');
+    img.alt = player.name;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    img.onerror = function() {
+      // URL failed (network issue etc) — fall back to initials
+      avatarEl.innerHTML = '<span style="font-family:var(--font-d);font-size:2.8rem;font-weight:700;color:' + rc.color + ';">' + initials + '</span>';
+    };
+    img.src = player.photo; // live URL — Wikipedia thumbnail
+    avatarEl.innerHTML = '';
+    avatarEl.appendChild(img);
+  } else {
+    avatarEl.innerHTML = '<span style="font-family:var(--font-d);font-size:2.8rem;font-weight:700;color:' + rc.color + ';">' + initials + '</span>';
+  }
+}
+
+// ============================================
 // LISTEN TO AUCTION
 // ============================================
 var lastPlayerIndex = -1;
@@ -1218,7 +1249,6 @@ function listenToAuction(roomCode) {
     if (totalEl) totalEl.textContent = orderedPlayers.length;
 
     var bid = data.currentBid || 0;
-    currentBidAmount = bid;
     document.getElementById('current-bid-amount').textContent = '₹' + bid + ' Cr';
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
@@ -1276,45 +1306,24 @@ function updatePlayersInfoPanel(data) {
       var remaining = maxBudget - spent;
       var pct = Math.max(0, (remaining / maxBudget) * 100);
       var isCurrentUser = auth.currentUser && auth.currentUser.uid === uid;
-      results[uid] = { username: username, remaining: remaining, count: myPlayers.length, pct: pct, isCurrentUser: isCurrentUser, myPlayers: myPlayers };
+      results[uid] = { username: username, remaining: remaining, count: myPlayers.length, pct: pct, isCurrentUser: isCurrentUser };
       loaded++;
       if (loaded === uids.length) {
         panel.innerHTML = '';
         uids.forEach(function(u) {
           var r = results[u];
           if (!r) return;
-
-          var boughtPlayersHTML = '';
-          if (r.myPlayers.length === 0) {
-            boughtPlayersHTML = '<div class="auc-dp-empty">No players bought yet.</div>';
-          } else {
-            r.myPlayers.forEach(function(p) {
-              boughtPlayersHTML += '<div class="auc-dp-item"><span>' + p.playerName + '</span> <span class="auc-dp-price">₹' + p.soldFor + ' Cr</span></div>';
-            });
-          }
           var div = document.createElement('div');
           div.className = 'auc-player-row' + (r.isCurrentUser ? ' auc-player-row-you' : '');
-          
-          // Here is the new HTML that actually includes the clickable header, the arrow icon, and the dropdown content!
           div.innerHTML =
-            '<div class="auc-player-row-header" onclick="this.parentElement.classList.toggle(\'open\')">' +
-              '<div style="flex:1;">' +
-                '<div class="auc-player-row-name">' + (r.isCurrentUser ? 'YOU' : r.username) + '</div>' +
-                '<div class="auc-player-row-stats">' +
-                  '<span class="auc-player-row-budget">₹' + r.remaining + ' Cr</span>' +
-                  '<span class="auc-player-row-count">' + r.count + ' players</span>' +
-                '</div>' +
-                '<div class="auc-player-row-bar-track">' +
-                  '<div class="auc-player-row-bar-fill" style="width:' + r.pct + '%;background:' + (r.isCurrentUser ? '#e94560' : '#606080') + '"></div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="auc-dp-icon">' + 
-                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                  '<polyline points="6 9 12 15 18 9"></polyline>' +
-                '</svg>' +
-              '</div>' +
+            '<div class="auc-player-row-name">' + (r.isCurrentUser ? 'YOU' : r.username) + '</div>' +
+            '<div class="auc-player-row-stats">' +
+              '<span class="auc-player-row-budget">₹' + r.remaining + ' Cr</span>' +
+              '<span class="auc-player-row-count">' + r.count + ' players</span>' +
             '</div>' +
-            '<div class="auc-dp-content">' + boughtPlayersHTML + '</div>';            
+            '<div class="auc-player-row-bar-track">' +
+              '<div class="auc-player-row-bar-fill" style="width:' + r.pct + '%;background:' + (r.isCurrentUser ? '#e94560' : '#606080') + '"></div>' +
+            '</div>';
           panel.appendChild(div);
         });
       }
@@ -1368,6 +1377,9 @@ function startTimer(seconds, totalSeconds) {
   }, 1000);
 }
 
+// ============================================
+// UPDATE BUDGET BAR
+// ============================================
 // ============================================
 // SQUAD COMPOSITION RULES
 // ============================================
@@ -1458,7 +1470,7 @@ function updateBidButtons(data) {
   var roleCounts = getMyRoleCounts(soldPlayers, user.uid);
 
   // Check if squad is already full
-  //var infoBox = document.getElementById('bid-composition-info');
+  var infoBox = document.getElementById('bid-composition-info');
   var bidBtns = [
     document.getElementById('btn-bid-5'),
     document.getElementById('btn-bid-10'),
@@ -1531,17 +1543,9 @@ async function placeBid(amount) {
   }
 }
 
-var currentBidAmount = 0;
-
-document.getElementById('btn-bid-5').addEventListener('click', function() {
-  placeBid(getIncrements(currentBidAmount)[0]);
-});
-document.getElementById('btn-bid-10').addEventListener('click', function() {
-  placeBid(getIncrements(currentBidAmount)[1]);
-});
-document.getElementById('btn-bid-20').addEventListener('click', function() {
-  placeBid(getIncrements(currentBidAmount)[2]);
-});
+document.getElementById('btn-bid-5').addEventListener('click', function() { placeBid(5); });
+document.getElementById('btn-bid-10').addEventListener('click', function() { placeBid(10); });
+document.getElementById('btn-bid-20').addEventListener('click', function() { placeBid(20); });
 
 // ============================================
 // UPDATE SOLD LIST (ticker)
@@ -1550,13 +1554,12 @@ function updateSoldList(soldPlayers) {
   var soldList = document.getElementById('sold-list');
   if (!soldList) return;
   soldList.innerHTML = '';
-  var reversedPlayers = soldPlayers.slice().reverse().slice(0,8);
-  reversedPlayers.forEach(function(item, index) {
+  soldPlayers.forEach(function(item, index) {
     var div = document.createElement('div');
     div.className = 'sold-item';
     div.innerHTML = item.playerName + ' <span class="sold-price">₹' + item.soldFor + ' Cr - ' + item.soldTo + '</span>';
     soldList.appendChild(div);
-    if (index < reversedPlayers.length - 1) {
+    if (index < soldPlayers.length - 1) {
       var sep = document.createElement('div');
       sep.className = 'sold-sep';
       sep.textContent = '·';
