@@ -25,6 +25,7 @@ let setupOrder = 'random';
 let setupSquadSize = 16;
 let maxPlayers = 2;
 let currentTimerDuration = 30;
+let currentBidAmount = 0;
 
 // ============================================
 // FIREBASE CONFIG
@@ -44,48 +45,19 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================
-// BREVO CONFIG
-// ============================================
-const BREVO_API_KEY = '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';
-const BREVO_SENDER_EMAIL = 'auctionx.noreply@gmail.com';
-const BREVO_SENDER_NAME = 'AuctionX';
-
-// ============================================
 // OTP HELPERS
 // ============================================
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+const WORKER_URL = 'https://auctionx-mailer.shaan-patel02.workers.dev';
+
 async function sendOTPEmail(toEmail, otp) {
-  var response = await fetch('https://api.brevo.com/v3/smtp/email', {
+  var response = await fetch(WORKER_URL, {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'api-key': BREVO_API_KEY
-    },
-    body: JSON.stringify({
-      sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
-      to: [{ email: toEmail }],
-      subject: 'Your AuctionX verification code',
-      htmlContent: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080810;color:#ffffff;padding:32px;border-radius:16px;border:1px solid rgba(233,69,96,0.2)">
-          <div style="text-align:center;margin-bottom:24px">
-            <div style="background:linear-gradient(135deg,#e94560,#c0392b);width:56px;height:56px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:white;letter-spacing:1px">AX</div>
-            <h1 style="font-size:1.6rem;letter-spacing:3px;margin:12px 0 4px;color:#ffffff">AUCTIONX</h1>
-            <p style="color:#606080;font-size:0.75rem;letter-spacing:2px;margin:0">OUTBID. OUTSMART. OUTPLAY.</p>
-          </div>
-          <p style="color:#a0a0b8;line-height:1.6;margin-bottom:8px">Your verification code is:</p>
-          <div style="text-align:center;margin:24px 0">
-            <span style="font-size:2.5rem;font-weight:700;letter-spacing:12px;color:#e94560;background:rgba(233,69,96,0.08);padding:16px 24px;border-radius:12px;border:1px solid rgba(233,69,96,0.2)">${otp}</span>
-          </div>
-          <p style="color:#a0a0b8;line-height:1.6">This code expires in <strong style="color:#ffffff">10 minutes</strong>.</p>
-          <p style="color:#a0a0b8;line-height:1.6">If you didn't create an AuctionX account, ignore this email.</p>
-          <p style="color:#606080;font-size:0.82rem;margin-top:24px">— The AuctionX Team</p>
-        </div>
-      `
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: toEmail, otp: otp })
   });
   return response.ok;
 }
@@ -199,6 +171,7 @@ async function sendOTPToUser(user) {
     showScreen('screen-otp');
   } catch(err) {
     console.error('OTP send error:', err);
+    alert('Error sending OTP: ' + err.message); // temporary — remove after debugging
   }
 }
 
@@ -529,7 +502,9 @@ function showVerificationBanner(isVerified) {
   // Insert as first child of dashboard-content, not fixed to body
   var dashContent = document.getElementById('dashboard-content') || document.querySelector('.dashboard-content');
   if (dashContent) {
-    dashContent.insertBefore(banner, dashContent.firstChild);
+      dashContent.insertBefore(banner, dashContent.firstChild);
+      // Scroll to top so banner is visible and not obscured by navbar
+      window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   document.body.classList.add('unverified');
 
@@ -1251,9 +1226,20 @@ function listenToAuction(roomCode) {
     if (totalEl) totalEl.textContent = orderedPlayers.length;
 
     var bid = data.currentBid || 0;
+    var user = auth.currentUser;
+    var prevBid = currentBidAmount;
+    currentBidAmount = bid;
     document.getElementById('current-bid-amount').textContent = '₹' + bid + ' Cr';
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
+    // Animate: bid landed (anyone's bid) or outbid (someone else overtook you)
+    if (bid > prevBid) {
+      animateBidLand();
+      if (user && data.currentBidder && data.currentBidder !== user.uid) {
+        // Someone else just outbid — flash warning
+        animateOutbid();
+      }
+    }
     if (data.soldPlayers) updateSoldList(data.soldPlayers);
     // Update bid button labels based on current bid tier
     var bid = data.currentBid || 0;
@@ -1541,28 +1527,98 @@ function formatIncrement(val) {
 }
 
 // ============================================
+// BID FEEL — sound + animation
+// ============================================
+var audioCtx = null;
+
+function getBidAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBidSound() {
+  try {
+    var ctx = getBidAudioCtx();
+    // A short snappy "click-ding" — two oscillators layered
+    var now = ctx.currentTime;
+
+    // Click transient (noise burst)
+    var bufSize = ctx.sampleRate * 0.04;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 8);
+    }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.18, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    noise.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+
+    // Tone ping
+    var osc = ctx.createOscillator();
+    var oscGain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
+    oscGain.gain.setValueAtTime(0.15, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch(e) {
+    // Audio not available — silent fallback
+  }
+}
+
+function animateBidButton(btnEl) {
+  if (!btnEl) return;
+  btnEl.classList.remove('punching');
+  void btnEl.offsetWidth;
+  btnEl.classList.add('punching');
+  // Fallback: always re-enable after 400ms even if animationend never fires
+  setTimeout(function() {
+    btnEl.classList.remove('punching');
+  }, 400);
+}
+
+function animateBidLand() {
+  var amountEl = document.getElementById('current-bid-amount');
+  if (!amountEl) return;
+  amountEl.classList.remove('landing');
+  void amountEl.offsetWidth;
+  amountEl.classList.add('landing');
+  amountEl.addEventListener('animationend', function() {
+    amountEl.classList.remove('landing');
+  }, { once: true });
+}
+
+// ============================================
 // BID BUTTONS
 // ============================================
-async function placeBid(increment) {
+async function placeBid(increment, btnEl) {
   var user = auth.currentUser;
   if (!user || !currentRoomCode) return;
-  var roomRef = doc(db, 'rooms', currentRoomCode);
+  var newBid = Math.round((currentBidAmount + increment) * 100) / 100;
+  if (newBid > myBudget) { alert('Not enough budget!'); return; }
+
+  // Feel: fire immediately before the async work
+  playBidSound();
+  animateBidButton(btnEl);
+
   try {
-    var snapshot = await getDoc(roomRef);
-    if (!snapshot.exists()) return;
-    var data = snapshot.data();
-    var currentBid = data.currentBid || 0;
-    var newBid = Math.round((currentBid + increment) * 100) / 100; // avoid float errors
-    if (newBid > myBudget) { alert('Not enough budget!'); return; }
     var userRef = doc(db, 'users', user.uid);
     var userSnap = await getDoc(userRef);
     var displayName = userSnap.exists() ? userSnap.data().username : user.email;
-    var now = new Date();
-    await updateDoc(roomRef, {
+    await updateDoc(doc(db, 'rooms', currentRoomCode), {
       currentBid: newBid,
       currentBidder: user.uid,
       currentBidderEmail: displayName,
-      timerStartedAt: now.getTime(),
+      timerStartedAt: new Date().getTime(),
     });
     track('bid_placed', { amount: newBid, increment: increment });
   } catch (error) {
@@ -1571,16 +1627,13 @@ async function placeBid(increment) {
 }
 
 document.getElementById('btn-bid-5').addEventListener('click', function() {
-  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
-  placeBid(inc[0]);
+  placeBid(getIncrements(currentBidAmount)[0], this);
 });
 document.getElementById('btn-bid-10').addEventListener('click', function() {
-  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
-  placeBid(inc[1]);
+  placeBid(getIncrements(currentBidAmount)[1], this);
 });
 document.getElementById('btn-bid-20').addEventListener('click', function() {
-  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
-  placeBid(inc[2]);
+  placeBid(getIncrements(currentBidAmount)[2], this);
 });
 
 // ============================================
