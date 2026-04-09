@@ -1255,6 +1255,15 @@ function listenToAuction(roomCode) {
     document.getElementById('current-bidder').textContent = data.currentBidderEmail || 'No bids yet';
 
     if (data.soldPlayers) updateSoldList(data.soldPlayers);
+    // Update bid button labels based on current bid tier
+    var bid = data.currentBid || 0;
+    var increments = getIncrements(bid);
+    var b5 = document.getElementById('btn-bid-5');
+    var b10 = document.getElementById('btn-bid-10');
+    var b20 = document.getElementById('btn-bid-20');
+    if (b5) b5.querySelector('.auc-bid-amount').textContent = formatIncrement(increments[0]);
+    if (b10) b10.querySelector('.auc-bid-amount').textContent = formatIncrement(increments[1]);
+    if (b20) b20.querySelector('.auc-bid-amount').textContent = formatIncrement(increments[2]);
     updateBidButtons(data);
     updatePlayersInfoPanel(data);
 
@@ -1379,9 +1388,6 @@ function startTimer(seconds, totalSeconds) {
   }, 1000);
 }
 
-// ============================================
-// UPDATE BUDGET BAR
-// ============================================
 // ============================================
 // SQUAD COMPOSITION RULES
 // ============================================
@@ -1516,9 +1522,28 @@ function hideBidInfo() {
 }
 
 // ============================================
+// TIERED BID INCREMENTS
+// Returns [small, medium, large] increments in Cr
+// based on the current bid amount
+// ============================================
+function getIncrements(currentBid) {
+  if (currentBid < 1)   return [0.05, 0.10, 0.20];   // 5L, 10L, 20L
+  if (currentBid < 2)   return [0.10, 0.25, 0.50];   // 10L, 25L, 50L
+  if (currentBid < 5)   return [0.25, 0.50, 1.00];   // 25L, 50L, 1Cr
+  if (currentBid < 15)  return [0.50, 1.00, 2.00];   // 50L, 1Cr, 2Cr
+  if (currentBid < 30)  return [1.00, 2.00, 5.00];   // 1Cr, 2Cr, 5Cr
+  return                       [2.00, 5.00, 10.00];  // 2Cr, 5Cr, 10Cr
+}
+
+function formatIncrement(val) {
+  if (val < 1) return '₹' + Math.round(val * 100) + 'L';
+  return '₹' + val + ' Cr';
+}
+
+// ============================================
 // BID BUTTONS
 // ============================================
-async function placeBid(amount) {
+async function placeBid(increment) {
   var user = auth.currentUser;
   if (!user || !currentRoomCode) return;
   var roomRef = doc(db, 'rooms', currentRoomCode);
@@ -1527,7 +1552,7 @@ async function placeBid(amount) {
     if (!snapshot.exists()) return;
     var data = snapshot.data();
     var currentBid = data.currentBid || 0;
-    var newBid = currentBid + amount;
+    var newBid = Math.round((currentBid + increment) * 100) / 100; // avoid float errors
     if (newBid > myBudget) { alert('Not enough budget!'); return; }
     var userRef = doc(db, 'users', user.uid);
     var userSnap = await getDoc(userRef);
@@ -1539,15 +1564,24 @@ async function placeBid(amount) {
       currentBidderEmail: displayName,
       timerStartedAt: now.getTime(),
     });
-    track('bid_placed', { amount: newBid, increment: amount });
+    track('bid_placed', { amount: newBid, increment: increment });
   } catch (error) {
     console.error('Bid error:', error);
   }
 }
 
-document.getElementById('btn-bid-5').addEventListener('click', function() { placeBid(5); });
-document.getElementById('btn-bid-10').addEventListener('click', function() { placeBid(10); });
-document.getElementById('btn-bid-20').addEventListener('click', function() { placeBid(20); });
+document.getElementById('btn-bid-5').addEventListener('click', function() {
+  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
+  placeBid(inc[0]);
+});
+document.getElementById('btn-bid-10').addEventListener('click', function() {
+  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
+  placeBid(inc[1]);
+});
+document.getElementById('btn-bid-20').addEventListener('click', function() {
+  var inc = getIncrements(parseFloat(document.getElementById('current-bid-amount').textContent.replace('₹','').replace(' Cr','')) || 0);
+  placeBid(inc[2]);
+});
 
 // ============================================
 // UPDATE SOLD LIST (ticker)
