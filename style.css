@@ -1903,6 +1903,8 @@ hr { border:none; border-top:1px solid var(--border2); margin:20px 0; }
   border: 1px solid rgba(233,69,96,0.25);
   border-radius: 16px;
   margin-bottom: 20px;
+  position: relative;
+  z-index: 5;
 }
 
 body.unverified .dashboard-content {
@@ -1935,4 +1937,54 @@ body.unverified .dashboard-content {
   background: rgba(255,193,7,0.08);
   border: 1px solid rgba(255,193,7,0.3);
   color: #ffc107;
+}
+
+/* ==============================
+   BID BUTTON FEEL
+============================== */
+.auc-bid-btn {
+  transform-origin: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes bidPunch {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.88); }
+  65%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bidLand {
+  0%   { transform: scale(1);    color: var(--red); }
+  40%  { transform: scale(1.18); color: #ffffff; }
+  100% { transform: scale(1);    color: var(--red); }
+}
+
+@keyframes outbidFlash {
+  0%,100% { background: rgba(233,69,96,0.05); }
+  50%     { background: rgba(255,193,7,0.15); }
+}
+
+.auc-bid-btn.punching {
+  animation: bidPunch 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.auc-bid-hero-amount.landing {
+  animation: bidLand 0.35s ease-out forwards;
+}
+
+.auc-bid-hero.outbid {
+  animation: outbidFlash 0.5s ease-in-out 2;
+}
+
+/* Disclaimer */
+.ax-disclaimer {
+  color: var(--text3);
+  font-size: 0.7rem;
+  text-align: center;
+  letter-spacing: 0.5px;
+  padding: 16px 0 8px;
+  border-top: 1px solid var(--border2);
+  margin-top: 8px;
 }
