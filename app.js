@@ -30,16 +30,8 @@ let currentBidAmount = 0;
 // ============================================
 // FIREBASE CONFIG
 // ============================================
-const firebaseConfig = {
-  apiKey: "AIzaSyAABN4U5N4mxXwkiIBLRsprpv563mR_wd8",
-  authDomain: "ipl-auction-game-eae92.firebaseapp.com",
-  projectId: "ipl-auction-game-eae92",
-  storageBucket: "ipl-auction-game-eae92.firebasestorage.app",
-  messagingSenderId: "525729954460",
-  appId: "1:525729954460:web:0fbb3ff950a0deddc20b59"
-};
-
-const app = initializeApp(firebaseConfig);
+const _fcfg = await fetch(CONFIG_URL).then(r => r.json());
+const app = initializeApp(_fcfg);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
@@ -51,10 +43,11 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-const WORKER_URL = 'https://auctionx-mailer.shaan-patel02.workers.dev';
+const MAILER_URL = 'https://auctionx-mailer.shaan-patel02.workers.dev';
+const CONFIG_URL = 'https://auctionx-config.shaan-patel02.workers.dev';
 
 async function sendOTPEmail(toEmail, otp) {
-  var response = await fetch(WORKER_URL, {
+  var response = await fetch(MAILER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ to: toEmail, otp: otp })
@@ -262,7 +255,7 @@ let IPL_PLAYERS = [];
 async function loadPlayersForEvent(eventId) {
   if (eventId === 'ipl2026') {
     if (IPL_PLAYERS.length > 0) return;
-    const module = await import('./data/ipl2026.js');
+    const module = await import('./data/ipl2026.js?v=1');
     IPL_PLAYERS = module.IPL_PLAYERS;
   }
   // Attach photo URLs from global registry to each player
@@ -1092,7 +1085,12 @@ function showSoldAnimation(playerName, buyerName, amount) {
   overlay.innerHTML =
     '<div style="font-family:var(--font-d);font-size:5rem;font-weight:700;color:#28a745;letter-spacing:4px;margin-bottom:16px;">SOLD!</div>' +
     '<div style="font-family:var(--font-d);font-size:2rem;color:#fff;margin-bottom:8px;">' + playerName + '</div>' +
-    '<div style="font-size:1.2rem;color:#e94560;font-family:var(--font-d);">₹' + amount + ' Cr → ' + buyerName + '</div>';
+    '<div style="font-size:1.2rem;color:#e94560;font-family:var(--font-d);margin-bottom:24px;">₹' + amount + ' Cr → ' + buyerName + '</div>' +
+    '<div class="ax-ad-slot ax-ad-slot-b" id="ad-slot-b">' +
+      '<div class="ax-ad-placeholder ax-ad-placeholder-overlay">' +
+        '<span class="ax-ad-label">ADVERTISEMENT</span>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(overlay);
   setTimeout(function() { if (overlay.parentNode) overlay.remove(); }, 2400);
 }
@@ -1105,7 +1103,12 @@ function showUnsoldAnimation(playerName) {
   overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
   overlay.innerHTML =
     '<div style="font-family:var(--font-d);font-size:5rem;font-weight:700;color:#dc3545;letter-spacing:4px;margin-bottom:16px;">UNSOLD</div>' +
-    '<div style="font-family:var(--font-d);font-size:2rem;color:#fff;">' + playerName + '</div>';
+    '<div style="font-family:var(--font-d);font-size:2rem;color:#fff;margin-bottom:24px;">' + playerName + '</div>' +
+    '<div class="ax-ad-slot ax-ad-slot-b" id="ad-slot-b">' +
+      '<div class="ax-ad-placeholder ax-ad-placeholder-overlay">' +
+        '<span class="ax-ad-label">ADVERTISEMENT</span>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(overlay);
   setTimeout(function() { if (overlay.parentNode) overlay.remove(); }, 2400);
 }
