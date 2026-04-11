@@ -762,6 +762,9 @@ document.getElementById('btn-leave-room').addEventListener('click', async functi
     // If no players left, delete the room entirely
     if (Object.keys(players).length === 0) {
       await deleteDoc(roomRef);
+    } else if (data.hostId === user.uid) {
+      // Host is leaving but others remain — delete the room
+      await deleteDoc(roomRef);
     } else {
       await updateDoc(roomRef, { players: players });
     }
