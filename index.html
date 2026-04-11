@@ -238,6 +238,18 @@
           <h3>CREATE ROOM</h3>
         </div>
         <p class="action-panel-desc">Host a private auction with your friends. You control the settings.</p>
+        <div class="input-group" style="margin-bottom:12px;">
+          <select id="event-select" style="width:100%;padding:12px 18px 12px 46px;background:var(--bg-input);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:var(--font-d);font-size:0.95rem;letter-spacing:1px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;">
+            <option value="" disabled selected style="background:#0e0e1c;color:var(--text3);">Select Event</option>
+            <option value="ipl2026" style="background:#0e0e1c;color:#ffffff;">IPL 2026 — Cricket</option>
+            <option value="fifa2026" style="background:#0e0e1c;color:#ffffff;">FIFA 2026 — Football</option>
+          </select>
+          <span class="input-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </span>
+        </div>
         <div class="room-type-toggle">
           <button class="room-type-btn active-room-type" id="btn-type-private">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -683,7 +695,7 @@
 
   <!-- Sold ticker -->
   <div class="auc-ticker">
-    <div class="auc-ticker-label">SOLD</div>
+    <div class="auc-ticker-label" id="auc-ticker-label">SOLD</div>
     <div class="auc-ticker-scroll" id="sold-list"></div>
   </div>
 
