@@ -2126,3 +2126,34 @@ body.unverified .dashboard-content {
   text-transform: uppercase;
   user-select: none;
 }
+
+.event-select-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.event-select-btn {
+  flex: 1;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text3);
+  font-family: var(--font-d);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--ease);
+}
+
+.event-select-btn:hover {
+  border-color: var(--border);
+  color: var(--text2);
+}
+
+.active-event {
+  border-color: var(--red) !important;
+  background: rgba(233,69,96,0.1) !important;
+  color: var(--red) !important;
+}
