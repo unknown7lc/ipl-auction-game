@@ -275,36 +275,60 @@
           </svg>
           CREATE ROOM
         </button>
-        <p class="action-note" id="room-type-note">Private rooms are for friends only. Points are not tracked.</p>
+        <p class="action-note" id="room-type-note">Private rooms are invite-only. Results and rankings are visible inside your room, but do not count towards the global leaderboard.</p>
       </div>
-      <div class="action-panel">
-        <div class="action-panel-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          <h3>JOIN ROOM</h3>
-        </div>
-        <p class="action-panel-desc">Have a room code? Enter it below to join your friends.</p>
-        <div class="input-group" style="margin-bottom: 12px; margin-top: -8px;">
-          <input type="text" id="join-code" placeholder="Enter room code"/>
-          <span class="input-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+
+      <div class="action-grid-right">
+        <div class="action-panel">
+          <div class="action-panel-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
             </svg>
-          </span>
+            <h3>JOIN ROOM</h3>
+          </div>
+          <p class="action-panel-desc">Have a room code? Enter it below to join your friends.</p>
+          <div class="input-group" style="margin-bottom: 12px; margin-top: -8px;">
+            <input type="text" id="join-code" placeholder="Enter room code"/>
+            <span class="input-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+          </div>
+          <button id="btn-join-room" class="btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            JOIN ROOM
+          </button>
+          <p class="action-note">Enter the 6-character code shared by your host.</p>
         </div>
-        <button id="btn-join-room" class="btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          JOIN ROOM
-        </button>
-        <p class="action-note">Enter the 6-character code shared by your host.</p>
+
+        <div class="action-panel how-to-play-panel" id="btn-how-to-play-card">
+          <div class="htp-card-inner">
+            <div class="htp-card-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="htp-card-text">
+              <h3>HOW TO PLAY</h3>
+              <p>Learn the rules, bidding system, squad composition and more.</p>
+            </div>
+            <div class="htp-card-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="dashboard-section">
@@ -774,7 +798,240 @@
     </div>
   </div>
 </div>
+<!-- HOW TO PLAY MODAL -->
+<div id="htp-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.88); z-index:999; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.3s ease;">
+  <div class="htp-modal-card">
+    <div class="htp-modal-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="nav-logo">AX</div>
+        <div>
+          <h2 style="font-family:var(--font-d); font-size:1.3rem; font-weight:700; letter-spacing:3px; color:#ffffff;">HOW TO PLAY</h2>
+          <p style="font-size:0.7rem; color:#a0a0b8; letter-spacing:2px;">AUCTIONX RULEBOOK</p>
+        </div>
+      </div>
+      <button id="htp-close" style="width:auto; padding:8px 16px; background:transparent; border:1px solid var(--border2); border-radius:8px; color:var(--text3); font-family:var(--font-d); font-size:0.78rem; letter-spacing:1px; cursor:pointer; margin:0; transition:all var(--ease);">✕ CLOSE</button>
+    </div>
 
+    <!-- Tabs -->
+    <div class="htp-tabs">
+      <button class="htp-tab active-htp-tab" data-tab="general">GENERAL</button>
+      <button class="htp-tab" data-tab="ipl">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+        IPL 2026
+      </button>
+      <button class="htp-tab" data-tab="fifa">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+        FIFA 2026
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="htp-content" id="htp-content">
+
+      <!-- GENERAL TAB -->
+      <div class="htp-tab-content active-htp-content" id="htp-general">
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            WHAT IS AUCTIONX?
+          </div>
+          <p class="htp-text">AuctionX is a multiplayer fantasy auction game. Players bid against each other to build the best squad from a real player database. The manager who builds the strongest squad within budget wins.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            ROOMS
+          </div>
+          <p class="htp-text">The host creates a room and shares the 6-character code with friends. Private rooms are invite-only and results stay within the room. Public rooms are open to everyone and count towards the global leaderboard.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            THE TIMER
+          </div>
+          <p class="htp-text">Each player goes up for auction with a countdown timer. Any bid resets the timer back to full. When the timer hits zero, the player is automatically sold to the highest bidder — or marked unsold if no one bid.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            BIDDING
+          </div>
+          <p class="htp-text">Three bid buttons are available at all times — small, medium and large increments. The increment amounts scale up automatically as the current bid rises. You cannot bid if you already have the highest bid — wait for someone else to bid first. You also cannot bid more than your remaining budget.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            SQUAD COMPOSITION
+          </div>
+          <p class="htp-text">You cannot freely buy any combination of players. Each role has a minimum and maximum limit based on your squad size. The bid buttons will automatically disable if buying a player would make it impossible to complete a valid squad. Pay attention to the warning messages.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4"/><path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/></svg>
+            WINNING
+          </div>
+          <p class="htp-text">The auction ends when all players have been sold or passed. Once the real-world event concludes, fantasy points are calculated based on your players' actual performances — goals, wickets, runs, assists and more. The manager whose squad earns the most fantasy points wins. During the auction phase, a live budget and squad tracker keeps everyone updated on each manager's picks.</p>
+        </div>
+      </div>
+
+      <!-- IPL TAB -->
+      <div class="htp-tab-content" id="htp-ipl">
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            OVERVIEW
+          </div>
+          <p class="htp-text">The IPL 2026 auction uses a database of 246 real IPL players across 10 teams. You are bidding in Indian Rupees (₹ Cr). Build your dream IPL squad within your budget.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            PLAYER ROLES
+          </div>
+          <div class="htp-roles">
+            <span class="htp-role-chip role-batsman">Batsman</span>
+            <span class="htp-role-chip role-bowler">Bowler</span>
+            <span class="htp-role-chip role-allrounder">All-rounder</span>
+            <span class="htp-role-chip role-wicketkeeper">Wicketkeeper</span>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            BASE PRICES
+          </div>
+          <div class="htp-table">
+            <div class="htp-table-row"><span>Star Players</span><span class="htp-val">₹2 Cr</span></div>
+            <div class="htp-table-row"><span>Regular Players</span><span class="htp-val">₹1 Cr</span></div>
+            <div class="htp-table-row"><span>Uncapped / Young</span><span class="htp-val">₹0.5 Cr</span></div>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            BID INCREMENTS
+          </div>
+          <div class="htp-table">
+            <div class="htp-table-row htp-table-header"><span>BID RANGE</span><span>SMALL</span><span>MEDIUM</span><span>LARGE</span></div>
+            <div class="htp-table-row"><span>Up to ₹1 Cr</span><span>₹5L</span><span>₹10L</span><span class="htp-val">₹20L</span></div>
+            <div class="htp-table-row"><span>₹1 – ₹2 Cr</span><span>₹10L</span><span>₹25L</span><span class="htp-val">₹50L</span></div>
+            <div class="htp-table-row"><span>₹2 – ₹5 Cr</span><span>₹25L</span><span>₹50L</span><span class="htp-val">₹1 Cr</span></div>
+            <div class="htp-table-row"><span>₹5 – ₹15 Cr</span><span>₹50L</span><span>₹1 Cr</span><span class="htp-val">₹2 Cr</span></div>
+            <div class="htp-table-row"><span>₹15 – ₹30 Cr</span><span>₹1 Cr</span><span>₹2 Cr</span><span class="htp-val">₹5 Cr</span></div>
+            <div class="htp-table-row"><span>Above ₹30 Cr</span><span>₹2 Cr</span><span>₹5 Cr</span><span class="htp-val">₹10 Cr</span></div>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            SQUAD COMPOSITION (16 PLAYERS)
+          </div>
+          <div class="htp-table">
+            <div class="htp-table-row htp-table-header"><span>ROLE</span><span>MIN</span><span class="htp-val">MAX</span></div>
+            <div class="htp-table-row"><span><span class="role-batsman" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Batsman</span></span><span>4</span><span>6</span></div>
+            <div class="htp-table-row"><span><span class="role-bowler" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Bowler</span></span><span>3</span><span>5</span></div>
+            <div class="htp-table-row"><span><span class="role-allrounder" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">All-rounder</span></span><span>2</span><span>4</span></div>
+            <div class="htp-table-row"><span><span class="role-wicketkeeper" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Wicketkeeper</span></span><span>1</span><span>2</span></div>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4"/><path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/></svg>
+            FANTASY POINTS
+          </div>
+          <p class="htp-text">Once IPL 2026 concludes, fantasy points are calculated based on your players' real match performances. Key scoring stats include:</p>
+          <div class="htp-table" style="margin-top:10px;">
+            <div class="htp-table-row"><span>Runs scored</span><span class="htp-val">+1 per run</span></div>
+            <div class="htp-table-row"><span>Wickets taken</span><span class="htp-val">+25 per wicket</span></div>
+            <div class="htp-table-row"><span>Half century (50+ runs)</span><span class="htp-val">+10 bonus</span></div>
+            <div class="htp-table-row"><span>Century (100+ runs)</span><span class="htp-val">+20 bonus</span></div>
+            <div class="htp-table-row"><span>5 wicket haul</span><span class="htp-val">+20 bonus</span></div>
+            <div class="htp-table-row"><span>Catch / Stumping</span><span class="htp-val">+10 per dismissal</span></div>
+            <div class="htp-table-row"><span>Duck (0 runs, batting)</span><span class="htp-val">−5 penalty</span></div>
+          </div>
+          <p class="htp-text" style="margin-top:10px;">The manager whose squad accumulates the most fantasy points across all IPL 2026 matches wins the leaderboard.</p>
+        </div>
+      </div>
+
+      <!-- FIFA TAB -->
+      <div class="htp-tab-content" id="htp-fifa">
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            OVERVIEW
+          </div>
+          <p class="htp-text">The FIFA World Cup 2026 auction uses a database of 336 real players across 24 nations. You are bidding in Euros (€ M). Build your dream World Cup squad within your transfer budget.</p>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            PLAYER POSITIONS
+          </div>
+          <div class="htp-roles">
+            <span class="htp-role-chip role-wicketkeeper">Goalkeeper</span>
+            <span class="htp-role-chip role-batsman">Defender</span>
+            <span class="htp-role-chip role-allrounder">Midfielder</span>
+            <span class="htp-role-chip role-bowler">Forward</span>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            TRANSFER VALUES
+          </div>
+          <div class="htp-table">
+            <div class="htp-table-row"><span>Star Players</span><span class="htp-val">€5 M</span></div>
+            <div class="htp-table-row"><span>Regular Players</span><span class="htp-val">€3 M</span></div>
+            <div class="htp-table-row"><span>Squad Players</span><span class="htp-val">€1 M</span></div>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            BID INCREMENTS
+          </div>
+          <div class="htp-table">
+            <div class="htp-table-row htp-table-header"><span>BID RANGE</span><span>SMALL</span><span>MEDIUM</span><span>LARGE</span></div>
+            <div class="htp-table-row"><span>Up to €10 M</span><span>€0.5M</span><span>€1M</span><span class="htp-val">€2M</span></div>
+            <div class="htp-table-row"><span>€10 – €30 M</span><span>€1M</span><span>€2M</span><span class="htp-val">€5M</span></div>
+            <div class="htp-table-row"><span>€30 – €60 M</span><span>€2M</span><span>€5M</span><span class="htp-val">€10M</span></div>
+            <div class="htp-table-row"><span>€60 – €100 M</span><span>€5M</span><span>€10M</span><span class="htp-val">€20M</span></div>
+            <div class="htp-table-row"><span>Above €100 M</span><span>€10M</span><span>€20M</span><span class="htp-val">€50M</span></div>
+          </div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            SQUAD COMPOSITION (16 PLAYERS)
+          </div>
+          <div class="htp-table-row"><span><span class="role-wicketkeeper" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Goalkeeper</span></span><span>2</span><span>3</span></div>
+            <div class="htp-table-row"><span><span class="role-batsman" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Defender</span></span><span>6</span><span>8</span></div>
+            <div class="htp-table-row"><span><span class="role-allrounder" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Midfielder</span></span><span>6</span><span>8</span></div>
+            <div class="htp-table-row"><span><span class="role-bowler" style="padding:2px 8px;border-radius:10px;font-size:0.8rem;display:inline;">Forward</span></span><span>4</span><span>6</span></div>
+        </div>
+        <div class="htp-section">
+          <div class="htp-section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4"/><path d="M17 3H7l1 9a5 5 0 0 0 8 0l1-9z"/></svg>
+            FANTASY POINTS
+          </div>
+          <p class="htp-text">Once FIFA World Cup 2026 concludes, fantasy points are calculated based on your players' real tournament performances. Key scoring stats include:</p>
+          <div class="htp-table" style="margin-top:10px;">
+            <div class="htp-table-row"><span>Goal scored</span><span class="htp-val">+10 per goal</span></div>
+            <div class="htp-table-row"><span>Assist</span><span class="htp-val">+6 per assist</span></div>
+            <div class="htp-table-row"><span>Clean sheet (GK / DEF)</span><span class="htp-val">+8 per match</span></div>
+            <div class="htp-table-row"><span>Clean sheet (MID)</span><span class="htp-val">+4 per match</span></div>
+            <div class="htp-table-row"><span>Penalty saved (GK)</span><span class="htp-val">+15 bonus</span></div>
+            <div class="htp-table-row"><span>Yellow card</span><span class="htp-val">−3 penalty</span></div>
+            <div class="htp-table-row"><span>Red card</span><span class="htp-val">−8 penalty</span></div>
+            <div class="htp-table-row"><span>Own goal</span><span class="htp-val">−6 penalty</span></div>
+          </div>
+          <p class="htp-text" style="margin-top:10px;">The manager whose squad accumulates the most fantasy points across all FIFA World Cup 2026 matches wins the leaderboard.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 <script type="module" src="app.js"></script>
 </body>
 </html>
