@@ -772,14 +772,14 @@ document.getElementById('btn-type-private').addEventListener('click', function()
   selectedRoomType = 'private';
   document.getElementById('btn-type-private').classList.add('active-room-type');
   document.getElementById('btn-type-public').classList.remove('active-room-type');
-  document.getElementById('room-type-note').textContent = 'Private rooms are for friends only. Points are not tracked.';
+  document.getElementById('room-type-note').textContent = 'Private rooms are invite-only. Results and rankings are visible inside your room, but do not count towards the global leaderboard.';
 });
 
 document.getElementById('btn-type-public').addEventListener('click', function() {
   selectedRoomType = 'public';
   document.getElementById('btn-type-public').classList.add('active-room-type');
   document.getElementById('btn-type-private').classList.remove('active-room-type');
-  document.getElementById('room-type-note').textContent = 'Public rooms are open to all. Points count towards leaderboard.';
+  document.getElementById('room-type-note').textContent = 'Public rooms are open to everyone. Results count towards the global leaderboard.';
 });
 
 // ============================================
@@ -1120,6 +1120,30 @@ function updateSetupScreenForEvent(eventId) {
       btn.textContent = cricketOrders[i].label;
     });
     document.getElementById('order-display').textContent = 'Random';
+  }
+
+  // Update squad size buttons
+  var squadBtns = document.querySelectorAll('.squad-btn');
+  if (cfg.sport === 'football') {
+    var footballSquads = [11, 16, 23, 26];
+    squadBtns.forEach(function(btn, i) {
+      btn.dataset.value = footballSquads[i];
+      btn.textContent = footballSquads[i] + ' Players';
+    });
+    setupSquadSize = 16;
+    document.getElementById('squad-display').textContent = '16 Players';
+    squadBtns.forEach(function(b) { b.classList.remove('active-btn'); });
+    squadBtns[1].classList.add('active-btn');
+  } else {
+    var cricketSquads = [11, 16, 20, 25];
+    squadBtns.forEach(function(btn, i) {
+      btn.dataset.value = cricketSquads[i];
+      btn.textContent = cricketSquads[i] + ' Players';
+    });
+    setupSquadSize = 16;
+    document.getElementById('squad-display').textContent = '16 Players';
+    squadBtns.forEach(function(b) { b.classList.remove('active-btn'); });
+    squadBtns[1].classList.add('active-btn');
   }
 
   // Update setup screen heading
@@ -1723,6 +1747,12 @@ function updateBidButtons(data) {
     return;
   }
 
+  if (data.currentBidder && auth.currentUser && data.currentBidder === auth.currentUser.uid) {
+    showBidInfo('You have the highest bid. Wait for someone else to bid.', 'block');
+    bidBtns.forEach(function(btn) { btn.disabled = true; btn.style.opacity = '0.4'; });
+    return;
+  }
+
   var result = checkBidAllowed(player.role, roleCounts, squadSize, currentTotal, settings);
 
   if (!result.allowed) {
@@ -1838,6 +1868,17 @@ function animateBidButton(btnEl) {
   }, 400);
 }
 
+function animateOutbid() {
+  var heroEl = document.querySelector('.auc-bid-hero');
+  if (!heroEl) return;
+  heroEl.classList.remove('outbid');
+  void heroEl.offsetWidth;
+  heroEl.classList.add('outbid');
+  heroEl.addEventListener('animationend', function() {
+    heroEl.classList.remove('outbid');
+  }, { once: true });
+}
+
 function animateBidLand() {
   var amountEl = document.getElementById('current-bid-amount');
   if (!amountEl) return;
@@ -1933,8 +1974,9 @@ function updateMyTeamScreen() {
     myTeamPlayers = soldPlayers.filter(function(p) { return p.soldToId === user.uid; });
     budgetSpent = myTeamPlayers.reduce(function(total, p) { return total + p.soldFor; }, 0);
     var budgetLeft = myBudget - budgetSpent;
-    document.getElementById('stat-budget-left').textContent = '₹' + budgetLeft + ' Cr';
-    document.getElementById('stat-budget-spent').textContent = '₹' + budgetSpent + ' Cr';
+    var cfgMyTeam = EVENT_CONFIG[currentEventId];
+    document.getElementById('stat-budget-left').textContent = cfgMyTeam.currency + budgetLeft + ' ' + cfgMyTeam.unit;
+    document.getElementById('stat-budget-spent').textContent = cfgMyTeam.currency + budgetSpent + ' ' + cfgMyTeam.unit;
     document.getElementById('stat-players-bought').textContent = myTeamPlayers.length;
     var myteamList = document.getElementById('myteam-list');
     myteamList.innerHTML = '';
@@ -1944,7 +1986,7 @@ function updateMyTeamScreen() {
       myTeamPlayers.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'myteam-player-item';
-        div.innerHTML = '<div><div class="player-name">' + p.playerName + '</div><div class="player-role">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">₹' + p.soldFor + ' Cr</div>';
+        div.innerHTML = '<div><div class="player-name">' + p.playerName + '</div><div class="player-role">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">' + cfgMyTeam.currency + p.soldFor + ' ' + cfgMyTeam.unit + '</div>';
         myteamList.appendChild(div);
       });
     }
@@ -1964,10 +2006,10 @@ function updateAllTeams(soldPlayers) {
   Object.keys(teams).forEach(function(name) {
     var players = teams[name];
     var totalSpent = players.reduce(function(t, p) { return t + p.soldFor; }, 0);
+    var cfgAllTeams = EVENT_CONFIG[currentEventId];
     var div = document.createElement('div');
     div.className = 'team-item';
-    div.innerHTML = '<div class="team-email">' + name + ' - Spent: ₹' + totalSpent + ' Cr</div><div class="team-players">' + players.map(function(p) { return p.playerName + ' (₹' + p.soldFor + 'Cr)'; }).join(', ') + '</div>';
-    allteamsList.appendChild(div);
+    div.innerHTML = '<div class="team-email">' + name + ' - Spent: ' + cfgAllTeams.currency + totalSpent + ' ' + cfgAllTeams.unit + '</div><div class="team-players">' + players.map(function(p) { return p.playerName + ' (' + cfgAllTeams.currency + p.soldFor + cfgAllTeams.unit + ')'; }).join(', ') + '</div>';
   });
 }
 
@@ -1997,15 +2039,16 @@ function showResults(roomCode) {
     });
     if (sortedTeams.length > 0) {
       document.getElementById('winner-name').textContent = sortedTeams[0].email;
-      document.getElementById('winner-stats').textContent = sortedTeams[0].players.length + ' players - ₹' + sortedTeams[0].totalSpent + ' Cr spent';
     }
+    var cfgResults = EVENT_CONFIG[data.eventId || 'ipl2026'];
+    document.getElementById('winner-stats').textContent = sortedTeams[0] ? sortedTeams[0].players.length + ' players - ' + cfgResults.currency + sortedTeams[0].totalSpent + ' ' + cfgResults.unit + ' spent' : '';
     var rankingsDiv = document.getElementById('final-rankings');
     rankingsDiv.innerHTML = '';
     var medals = ['1st', '2nd', '3rd'];
     sortedTeams.forEach(function(team, index) {
       var div = document.createElement('div');
       div.className = 'ranking-item';
-      div.innerHTML = '<div class="ranking-position">' + (medals[index] || (index + 1) + 'th') + '</div><div class="ranking-info"><div class="ranking-email">' + team.email + '</div><div class="ranking-details">' + team.players.length + ' players bought</div></div><div class="ranking-budget">₹' + team.totalSpent + ' Cr</div>';
+      div.innerHTML = '<div class="ranking-position">' + (medals[index] || (index + 1) + 'th') + '</div><div class="ranking-info"><div class="ranking-email">' + team.email + '</div><div class="ranking-details">' + team.players.length + ' players bought</div></div><div class="ranking-budget">' + cfgResults.currency + team.totalSpent + ' ' + cfgResults.unit + '</div>';
       rankingsDiv.appendChild(div);
     });
     var myTeam = teams[user.uid];
@@ -2017,7 +2060,7 @@ function showResults(roomCode) {
       myTeam.players.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'final-player-item';
-        div.innerHTML = '<div class="player-details"><div class="player-name">' + p.playerName + '</div><div class="player-meta">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">₹' + p.soldFor + ' Cr</div>';
+        div.innerHTML = '<div class="player-details"><div class="player-name">' + p.playerName + '</div><div class="player-meta">' + p.playerRole + ' - ' + p.playerTeam + '</div></div><div class="player-price">' + cfgResults.currency + p.soldFor + ' ' + cfgResults.unit + '</div>';
         finalMyteam.appendChild(div);
       });
     }
@@ -2027,10 +2070,36 @@ function showResults(roomCode) {
 document.getElementById('btn-view-season').addEventListener('click', function() { alert('Season Leaderboard coming soon!'); });
 document.getElementById('btn-share-result').addEventListener('click', function() {
   var shareText = 'My AuctionX Team!\n\n';
-  myTeamPlayers.forEach(function(p) { shareText += p.playerName + ' - ₹' + p.soldFor + ' Cr\n'; });
-  shareText += '\nTotal Spent: ₹' + budgetSpent + ' Cr\nPlay at: https://YOUR-USERNAME.github.io/auctionx';
+  var cfgShare = EVENT_CONFIG[currentEventId];
+  myTeamPlayers.forEach(function(p) { shareText += p.playerName + ' - ' + cfgShare.currency + p.soldFor + ' ' + cfgShare.unit + '\n'; });
+  shareText += '\nTotal Spent: ' + cfgShare.currency + budgetSpent + ' ' + cfgShare.unit + '\nPlay at: https://unknown7lc.github.io/AuctionX';
   navigator.clipboard.writeText(shareText).then(function() { alert('Team copied to clipboard!'); });
 });
 document.getElementById('btn-new-auction').addEventListener('click', function() {
   if (confirm('Start a new auction?')) showScreen('screen-lobby');
+});
+
+// ============================================
+// HOW TO PLAY MODAL
+// ============================================
+document.getElementById('btn-how-to-play-card').addEventListener('click', function() {
+  var modal = document.getElementById('htp-modal');
+  modal.style.display = 'flex';
+});
+
+document.getElementById('htp-close').addEventListener('click', function() {
+  document.getElementById('htp-modal').style.display = 'none';
+});
+
+document.getElementById('htp-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+document.querySelectorAll('.htp-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.htp-tab').forEach(function(t) { t.classList.remove('active-htp-tab'); });
+    document.querySelectorAll('.htp-tab-content').forEach(function(c) { c.classList.remove('active-htp-content'); });
+    tab.classList.add('active-htp-tab');
+    document.getElementById('htp-' + tab.dataset.tab).classList.add('active-htp-content');
+  });
 });
